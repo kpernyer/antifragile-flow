@@ -4,7 +4,7 @@ An intelligent human-AI collaborative platform that creates digital twins of org
 
 ## 🎯 Overview
 
-Kolomolo Hackathon transforms how organizations make decisions by creating an **Organizational Twin** - an AI-powered digital representation that learns your team's communication patterns, personalities, and cultural dynamics. The system orchestrates complex workflows where AI agents and humans collaborate seamlessly, with intelligent backup when team members are unavailable.
+The work presented here in the Kolomolo Hackathon, transforms how organizations make decisions by creating an **Organizational Twin** - an AI-powered digital representation that learns your team's communication patterns, personalities, and cultural dynamics. The system orchestrates complex workflows where AI agents and humans collaborate seamlessly, with intelligent backup when team members are unavailable.
 
 ### Key Capabilities
 
