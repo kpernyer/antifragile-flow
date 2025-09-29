@@ -120,3 +120,40 @@ docs/_build/
 *.bak
 *.backup
 *.orig
+
+# Security and sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+serviceAccountKey.json
+*serviceAccount*.json
+*.crt
+*.csr
+*credentials*.json
+*secret*.json
+*token*.json
+*api*key*.json
+*private*key*
+.secrets/
+secrets/
+credentials/
+
+# Cloud provider credentials
+.aws/credentials
+.gcp/
+.azure/
+.terraform.tfvars
+terraform.tfvars
+*.auto.tfvars
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.pub
+
+# Database credentials and connection strings
+database.yml
+*.sqlite-journal
