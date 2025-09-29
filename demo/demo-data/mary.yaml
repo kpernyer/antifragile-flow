@@ -1,0 +1,42 @@
+# Mary O'Keefe - CEO Profile
+basic_info:
+  id: "mary.okeefe"
+  email: "mary.okeefe@globex-industrial-group.com"
+  name: "Mary O'Keefe"
+  role: "CEO"
+  department: "Executive"
+
+personality:
+  decision_style: "decisive"          # decisive, collaborative, analytical, intuitive
+  communication_style: "direct"       # direct, diplomatic, detailed, casual
+  response_time: "fast"               # fast, moderate, slow, variable
+  agreement_tendency: "moderate"       # high, moderate, low, contrarian
+  delegation_tendency: "high"         # high, moderate, low, micromanager
+  risk_tolerance: "calculated"        # high, calculated, moderate, low
+  detail_orientation: "strategic"     # strategic, balanced, detailed, big_picture
+  conflict_handling: "confrontational" # confrontational, mediating, avoiding, diplomatic
+
+behavioral_traits:
+  typical_response_time_minutes: 5
+  agrees_with_majority: 0.6          # 0.0 = never agrees, 1.0 = always agrees
+  initiates_decisions: 0.9           # likelihood of starting new workflows
+  asks_for_more_info: 0.3            # tendency to request additional details
+  changes_mind: 0.2                  # likelihood of reversing decisions
+  delegates_tasks: 0.8               # tendency to assign work to others
+
+communication_patterns:
+  typical_message_length: "concise"   # brief, concise, detailed, verbose
+  uses_data: 0.7                     # reliance on data in arguments
+  uses_emotion: 0.4                  # emotional appeals in communication
+  formality_level: "professional"    # casual, professional, formal, corporate
+
+preferences:
+  meeting_style: "efficient"         # efficient, thorough, creative, informal
+  decision_factors: ["revenue_impact", "strategic_alignment", "competitive_advantage"]
+  information_sources: ["market_data", "team_input", "industry_reports"]
+
+backstory:
+  experience_years: 15
+  previous_roles: ["VP Operations", "Director Strategy", "Management Consultant"]
+  key_achievements: ["Led successful IPO", "Doubled revenue in 3 years", "Expanded to 5 new markets"]
+  management_philosophy: "Empower teams, make fast decisions, focus on results"

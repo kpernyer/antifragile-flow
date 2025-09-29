@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "uid": "bob.greenland@globex-industrial-group.com",
+      "email": "bob.greenland@globex-industrial-group.com",
+      "passwordHash": "password123",
+      "displayName": "Bob Greenland (IT Admin)"
+    },
+    {
+      "uid": "mary.okeefe@globex-industrial-group.com",
+      "email": "mary.okeefe@globex-industrial-group.com",
+      "passwordHash": "password123",
+      "displayName": "Mary O'Keefe (CEO)"
+    },
+    {
+      "uid": "john.appelkvist@globex-industrial-group.com",
+      "email": "john.appelkvist@globex-industrial-group.com",
+      "passwordHash": "password123",
+      "displayName": "John Appelkvist (VP of Sales)"
+    },
+    {
+      "uid": "isac.ironsmith@globex-industrial-group.com",
+      "email": "isac.ironsmith@globex-industrial-group.com",
+      "passwordHash": "password123",
+      "displayName": "Isac 'Happy' Ironsmith (VP of Engineering)"
+    }
+  ]
+}

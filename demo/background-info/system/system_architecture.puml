@@ -1,0 +1,96 @@
+@startuml Living Twin Monorepo - System Architecture
+!theme plain
+title Living Twin Monorepo - Generated System Architecture
+
+package "External Services" {
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Google Cloud Platform] as GoogleCloudPlatform
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Google Cloud Platform] as GoogleCloudPlatform
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Google Cloud Platform] as GoogleCloudPlatform
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Google Cloud Platform] as GoogleCloudPlatform
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Sentry] as Sentry
+  [OpenAI API] as OpenAIAPI
+  [Firebase] as Firebase
+  [Sentry] as Sentry
+}
+
+package "Databases" {
+  database Neo4j
+  database Redis
+}
+
+package "API Services" {
+  component [hello_world_api API] as hello_world_api_api {
+  }
+  component [api API] as api_api {
+    [__ensure_cext()]
+    [_init_symbols()]
+    [_engine_uri()]
+    [_requirements()]
+    [_prep_testing_database()]
+    [... 2 more routes]
+  }
+}
+
+package "Web Applications" {
+  component [admin_web Web] as admin_web_web {
+  }
+}
+
+package "Infrastructure" {
+  component [gcp_firebase] as gcp_firebase_infra
+}
+
+' Relationships
+admin_web_web --> hello_world_api_api : HTTP/GraphQL
+admin_web_web --> api_api : HTTP/GraphQL
+hello_world_api_api --> Neo4j : Graph Queries
+hello_world_api_api --> Redis : Cache/Queue
+api_api --> Neo4j : Graph Queries
+api_api --> Redis : Cache/Queue
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+hello_world_api_api --> OpenAIAPI : AI/ML
+api_api --> OpenAIAPI : AI/ML
+hello_world_api_api --> Firebase : Auth
+api_api --> Firebase : Auth
+
+@enduml

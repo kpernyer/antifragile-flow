@@ -1,0 +1,276 @@
+version: "1.0"
+prompts:
+  - metadata:
+      id: "workflow.consensus.initiate_process"
+      name: "Initiate Consensus Building Process"
+      description: "Start a consensus building workflow with proper framing"
+      category: "workflow"
+      version: "1.0.0"
+      tags: ["workflow", "consensus", "initiation", "framing"]
+      preferred_models: ["anthropic/claude-3-sonnet"]
+      max_tokens: 1200
+      temperature: 0.6
+    role: "user"
+    system_prompt: |
+      You are facilitating the start of a consensus building process. Your role is to
+      establish clear context, set expectations, and ensure all participants understand
+      the decision-making process and their roles.
+    template: |
+      # Consensus Building Process: {{ process_title }}
+
+      ## Decision Overview
+      **Decision Required**: {{ decision_topic }}
+      **Decision Owner**: {{ decision_owner }}
+      **Deadline**: {{ decision_deadline }}
+      **Impact Level**: {{ impact_level }}
+
+      ## Context and Background
+      {{ background_context }}
+
+      {% if strategic_alignment %}
+      **Strategic Alignment**: {{ strategic_alignment }}
+      {% endif %}
+
+      ## Participants and Roles
+      {% for participant in participants %}
+      - **{{ participant.name }}** ({{ participant.role }})
+        - Expertise: {{ participant.expertise }}
+        - Stake in decision: {{ participant.stake }}
+        {% if participant.decision_authority %}
+        - Decision authority: {{ participant.decision_authority }}
+        {% endif %}
+      {% endfor %}
+
+      ## Process Framework
+      **Method**: {{ consensus_method | default("Modified consensus with fallback to authority") }}
+
+      **Process Steps**:
+      1. **Information Gathering** ({{ info_gathering_duration }})
+         - Research and data collection
+         - Stakeholder input
+         - Expert consultation
+
+      2. **Proposal Development** ({{ proposal_duration }})
+         - Initial options generation
+         - Feasibility assessment
+         - Risk analysis
+
+      3. **Consensus Building** ({{ consensus_duration }})
+         - Structured discussion
+         - Concern identification and resolution
+         - Agreement building
+
+      4. **Decision Finalization** ({{ finalization_duration }})
+         - Final recommendation
+         - Implementation planning
+         - Communication strategy
+
+      ## Success Criteria
+      {% for criteria in success_criteria %}
+      - {{ criteria }}
+      {% endfor %}
+
+      ## Ground Rules
+      1. **Constructive Engagement**: Focus on issues, not personalities
+      2. **Information Sharing**: All relevant information should be shared openly
+      3. **Time Boundaries**: Respect deadlines and meeting schedules
+      4. **Decision Authority**: Understand who has final authority if consensus isn't reached
+      5. **Confidentiality**: {{ confidentiality_level }}
+
+      {{ conditional_section(constraints, "## Constraints and Limitations\n" + (constraints | format_list)) }}
+
+      ## Next Steps
+      1. Confirm participation and understanding of process
+      2. Schedule information gathering sessions
+      3. Establish communication channels and documentation
+      4. Begin research and data collection phase
+
+      **First Meeting**: {{ first_meeting_date }}
+      **Preparation Required**: {{ preparation_requirements }}
+
+      Are all participants aligned on this process framework?
+    variables:
+      - name: process_title
+        type: string
+        description: "Title/name for this consensus building process"
+        required: true
+      - name: decision_topic
+        type: string
+        description: "The specific decision that needs to be made"
+        required: true
+      - name: decision_owner
+        type: string
+        description: "Person ultimately responsible for the decision"
+        required: true
+      - name: decision_deadline
+        type: string
+        description: "When the decision must be finalized"
+        required: true
+      - name: impact_level
+        type: string
+        description: "Impact level of this decision"
+        required: true
+        examples: ["low", "medium", "high", "critical"]
+      - name: background_context
+        type: string
+        description: "Background information and context for the decision"
+        required: true
+      - name: strategic_alignment
+        type: string
+        description: "How this decision aligns with strategic objectives"
+        required: false
+      - name: participants
+        type: list
+        description: "List of participants with their roles and expertise"
+        required: true
+      - name: consensus_method
+        type: string
+        description: "Consensus building method to be used"
+        required: false
+      - name: info_gathering_duration
+        type: string
+        description: "Time allocated for information gathering"
+        required: false
+        default: "3-5 days"
+      - name: proposal_duration
+        type: string
+        description: "Time allocated for proposal development"
+        required: false
+        default: "2-3 days"
+      - name: consensus_duration
+        type: string
+        description: "Time allocated for consensus building"
+        required: false
+        default: "5-7 days"
+      - name: finalization_duration
+        type: string
+        description: "Time allocated for decision finalization"
+        required: false
+        default: "1-2 days"
+      - name: success_criteria
+        type: list
+        description: "Criteria for successful consensus building"
+        required: true
+      - name: confidentiality_level
+        type: string
+        description: "Level of confidentiality required"
+        required: false
+        default: "Internal discussion only - external disclosure requires approval"
+      - name: constraints
+        type: list
+        description: "Constraints or limitations affecting the decision"
+        required: false
+      - name: first_meeting_date
+        type: string
+        description: "Date and time for first meeting"
+        required: false
+      - name: preparation_requirements
+        type: string
+        description: "What participants need to prepare"
+        required: false
+
+  - metadata:
+      id: "workflow.consensus.gather_input"
+      name: "Gather Stakeholder Input"
+      description: "Systematic collection of input from all stakeholders"
+      category: "workflow"
+      version: "1.0.0"
+      tags: ["workflow", "input_gathering", "stakeholders"]
+      preferred_models: ["anthropic/claude-3-sonnet"]
+      max_tokens: 800
+      temperature: 0.5
+    role: "user"
+    template: |
+      # Input Gathering: {{ decision_topic }}
+
+      We're seeking your input on: **{{ decision_topic }}**
+
+      ## Your Perspective
+      As {{ participant_role }}, your insights are valuable because {{ participant_expertise }}.
+
+      ## Current Situation
+      {{ current_situation }}
+
+      ## Options Under Consideration
+      {% for option in options %}
+      ### Option {{ loop.index }}: {{ option.title }}
+      {{ option.description }}
+
+      **Pros**: {{ option.pros | format_list }}
+      **Cons**: {{ option.cons | format_list }}
+      **Implementation Effort**: {{ option.effort_level }}
+      {% endfor %}
+
+      ## Questions for Your Input
+
+      1. **Preference**: Which option do you prefer and why?
+
+      2. **Concerns**: What concerns do you have about each option?
+
+      3. **Missing Information**: What additional information would help you make a better assessment?
+
+      4. **Alternative Ideas**: Do you see other options we haven't considered?
+
+      5. **Implementation**: From your perspective, what would successful implementation require?
+
+      6. **Risks**: What risks do you foresee with your preferred option?
+
+      7. **Success Metrics**: How would you measure success for this decision?
+
+      {% if specific_questions %}
+      ## Role-Specific Questions
+      {% for question in specific_questions %}
+      {{ loop.index + 7 }}. {{ question }}
+      {% endfor %}
+      {% endif %}
+
+      ## Context for Your Response
+      - **Timeline**: Please provide input by {{ input_deadline }}
+      - **Detail Level**: {{ detail_level }}
+      - **Confidentiality**: Your input will be {{ confidentiality_handling }}
+
+      Your thoughtful input will help ensure we make the best decision for {{ organization_name }}.
+    variables:
+      - name: decision_topic
+        type: string
+        description: "The decision topic for input gathering"
+        required: true
+      - name: participant_role
+        type: string
+        description: "The role of the person providing input"
+        required: true
+      - name: participant_expertise
+        type: string
+        description: "Why this person's input is valuable"
+        required: true
+      - name: current_situation
+        type: string
+        description: "Description of the current situation"
+        required: true
+      - name: options
+        type: list
+        description: "List of options being considered"
+        required: true
+      - name: specific_questions
+        type: list
+        description: "Role-specific questions"
+        required: false
+      - name: input_deadline
+        type: string
+        description: "Deadline for providing input"
+        required: true
+      - name: detail_level
+        type: string
+        description: "Expected level of detail in response"
+        required: false
+        default: "Detailed analysis preferred, but bullet points acceptable"
+      - name: confidentiality_handling
+        type: string
+        description: "How the input will be handled confidentially"
+        required: false
+        default: "shared with the decision team but not attributed publicly"
+      - name: organization_name
+        type: string
+        description: "Name of the organization"
+        required: false
+        default: "our organization"

@@ -1,0 +1,130 @@
+version: "1.0"
+prompts:
+  - metadata:
+      id: "document_processor.analyze_document"
+      name: "Document Analysis"
+      description: "Analyze uploaded documents for key information extraction"
+      category: "agent"
+      version: "1.2.0"
+      tags: ["document", "analysis", "extraction", "nlp"]
+      preferred_models: ["anthropic/claude-3-sonnet", "openai/gpt-4"]
+      min_context_length: 8000
+      max_tokens: 2000
+      temperature: 0.3
+    role: "user"
+    system_prompt: |
+      You are a document analysis expert specializing in extracting structured information
+      from business documents. Your analysis should be thorough, accurate, and highlight
+      the most important insights for decision-making.
+    template: |
+      Please analyze the following document and extract key information:
+
+      Document Type: {{ document_type }}
+      Document Title: {{ document_title }}
+
+      {% if document_content %}
+      Document Content:
+      ---
+      {{ document_content | truncate_words(1500) }}
+      ---
+      {% endif %}
+
+      Please provide a structured analysis including:
+
+      1. **Document Summary** (2-3 sentences)
+      2. **Key Information Extracted**:
+         - Important facts and figures
+         - Dates and deadlines
+         - People and organizations mentioned
+         - Financial information (if any)
+      3. **Strategic Insights**:
+         - Implications for business decisions
+         - Risks or opportunities identified
+         - Recommended actions
+      4. **Confidence Assessment**: Rate your confidence in the analysis (1-10)
+
+      {% if specific_focus %}
+      Special focus area: {{ specific_focus }}
+      {% endif %}
+
+      {% if previous_context %}
+      Context from previous documents:
+      {{ previous_context | indent_text(2) }}
+      {% endif %}
+
+      Format your response as structured JSON with clear sections.
+    variables:
+      - name: document_type
+        type: string
+        description: "Type of document (e.g., contract, report, email)"
+        required: true
+        examples: ["contract", "financial_report", "strategic_plan", "meeting_notes"]
+      - name: document_title
+        type: string
+        description: "Title or subject of the document"
+        required: true
+      - name: document_content
+        type: string
+        description: "Full text content of the document"
+        required: true
+      - name: specific_focus
+        type: string
+        description: "Specific area to focus analysis on"
+        required: false
+        examples: ["financial_metrics", "legal_obligations", "technical_requirements"]
+      - name: previous_context
+        type: string
+        description: "Context from previously analyzed documents"
+        required: false
+    examples:
+      - variables:
+          document_type: "contract"
+          document_title: "Software License Agreement"
+          document_content: "This Software License Agreement..."
+          specific_focus: "legal_obligations"
+
+  - metadata:
+      id: "document_processor.summarize_findings"
+      name: "Document Findings Summary"
+      description: "Summarize findings from multiple document analyses"
+      category: "agent"
+      version: "1.0.0"
+      tags: ["summary", "synthesis", "insights"]
+      preferred_models: ["anthropic/claude-3-sonnet"]
+      max_tokens: 1500
+      temperature: 0.4
+    role: "user"
+    template: |
+      Based on the analysis of {{ document_count }} documents, please provide a comprehensive summary:
+
+      {% for analysis in document_analyses %}
+      ## Document {{ loop.index }}: {{ analysis.title }}
+      {{ analysis.summary | indent_text(2) }}
+
+      {% endfor %}
+
+      Please synthesize these findings into:
+
+      1. **Overall Themes**: Common patterns across documents
+      2. **Critical Insights**: Most important findings for decision-making
+      3. **Action Items**: Recommended next steps
+      4. **Risk Assessment**: Potential concerns or red flags
+      5. **Opportunities**: Potential benefits or advantages identified
+
+      {{ conditional_section(include_timeline, "6. **Timeline**: Key dates and deadlines to track") }}
+
+      Prioritize insights by business impact and urgency.
+    variables:
+      - name: document_count
+        type: int
+        description: "Number of documents analyzed"
+        required: true
+      - name: document_analyses
+        type: list
+        description: "List of document analysis results"
+        required: true
+      - name: include_timeline
+        type: bool
+        description: "Whether to include timeline section"
+        required: false
+        default: false

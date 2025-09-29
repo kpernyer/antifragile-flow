@@ -1,11 +1,202 @@
+version: '3.8'
+
+networks:
+  temporal-network:
+    driver: bridge
+
+volumes:
+  temporal-data:
+  postgres-data:
+  app-postgres-data:
+  neo4j-data:
+  neo4j-logs:
+  redis-data:
+  minio-data:
+  prometheus-data:
+  grafana-data:
+
 services:
+  # Temporal server
   temporal:
     image: temporalio/temporal
+    container_name: temporal-server
     ports:
-      - 8080:8233
+      - "8080:8233"  # Web UI
+      - "7233:7233"  # gRPC
     command: server start-dev --ip 0.0.0.0
+    environment:
+      - DB=default
+      - DB_PORT=7233
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-cass.yaml
     healthcheck:
       test: ["CMD-SHELL", "temporal operator cluster health"]
       interval: 10s
       timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - temporal-network
+    volumes:
+      - temporal-data:/tmp/temporal
+
+  # Python worker
+  python-worker:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: python-worker
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - PYTHONPATH=/app
+    depends_on:
+      temporal:
+        condition: service_healthy
+    networks:
+      - temporal-network
+    volumes:
+      - ./python/src:/app/src:ro
+    restart: unless-stopped
+
+  # TypeScript worker
+  typescript-worker:
+    build:
+      context: ./typescript
+      dockerfile: Dockerfile
+    container_name: typescript-worker
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      temporal:
+        condition: service_healthy
+    networks:
+      - temporal-network
+    volumes:
+      - ./typescript/src:/app/src:ro
+    restart: unless-stopped
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # Nginx reverse proxy (for API gateway)
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - python-worker
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # PostgreSQL database (for production-like setup)
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      - POSTGRES_DB=temporal
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # Application PostgreSQL database (for inbox data)
+  app-postgres:
+    image: postgres:15
+    container_name: app-postgres
+    environment:
+      - POSTGRES_DB=antifragile
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_password
+      - POSTGRES_MULTIPLE_DATABASES=inbox,users
+    ports:
+      - "5433:5432"
+    volumes:
+      - app-postgres-data:/var/lib/postgresql/data
+      - ./scripts/app-postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d antifragile"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j for organizational graph data
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: neo4j-org
+    environment:
+      - NEO4J_AUTH=neo4j/neo4j_password
+      - NEO4J_dbms_security_procedures_whitelist=apoc.coll.*,apoc.load.*
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p neo4j_password 'RETURN 1'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # MinIO for document and object storage
+  minio:
+    image: minio/minio:latest
+    container_name: minio-storage
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+      - MINIO_DEFAULT_BUCKETS=documents,media,exports,templates
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    volumes:
+      - minio-data:/data
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
       retries: 3
+      start_period: 40s

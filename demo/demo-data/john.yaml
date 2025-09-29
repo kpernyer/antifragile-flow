@@ -1,0 +1,42 @@
+# John Appelkvist - VP of Sales Profile
+basic_info:
+  id: "john.appelkvist"
+  email: "john.appelkvist@globex-industrial-group.com"
+  name: "John Appelkvist"
+  role: "VP of Sales"
+  department: "Sales"
+
+personality:
+  decision_style: "collaborative"     # decisive, collaborative, analytical, intuitive
+  communication_style: "diplomatic"   # direct, diplomatic, detailed, casual
+  response_time: "moderate"           # fast, moderate, slow, variable
+  agreement_tendency: "high"          # high, moderate, low, contrarian
+  delegation_tendency: "moderate"     # high, moderate, low, micromanager
+  risk_tolerance: "high"              # high, calculated, moderate, low
+  detail_orientation: "balanced"      # strategic, balanced, detailed, big_picture
+  conflict_handling: "mediating"      # confrontational, mediating, avoiding, diplomatic
+
+behavioral_traits:
+  typical_response_time_minutes: 15
+  agrees_with_majority: 0.75         # tends to be supportive of team decisions
+  initiates_decisions: 0.6           # moderate likelihood of starting workflows
+  asks_for_more_info: 0.6            # often wants customer/market perspective
+  changes_mind: 0.4                  # flexible when presented with market data
+  delegates_tasks: 0.6               # delegates to sales team frequently
+
+communication_patterns:
+  typical_message_length: "detailed"  # likes to provide market context
+  uses_data: 0.8                     # heavily relies on sales metrics and market data
+  uses_emotion: 0.6                  # uses customer stories and market sentiment
+  formality_level: "professional"    # maintains professional tone
+
+preferences:
+  meeting_style: "thorough"          # wants to understand customer impact
+  decision_factors: ["customer_impact", "market_opportunity", "competitive_response", "revenue_potential"]
+  information_sources: ["customer_feedback", "market_research", "competitor_analysis", "sales_team_input"]
+
+backstory:
+  experience_years: 12
+  previous_roles: ["Regional Sales Director", "Account Manager", "Business Development"]
+  key_achievements: ["Grew territory by 200%", "Landed 3 Fortune 500 clients", "Built sales team from 5 to 25"]
+  management_philosophy: "Customer first, data-driven decisions, team empowerment"

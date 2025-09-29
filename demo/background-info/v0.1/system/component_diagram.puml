@@ -1,0 +1,49 @@
+@startuml Living Twin Monorepo - Component Relationships
+!theme plain
+title Component Dependencies - Auto Generated
+
+package "Technology Stack" {
+  package "Backend" {
+    [Redis] as Redis
+    [OpenAI] as OpenAI
+    [Neo4j] as Neo4j
+    [Strawberry GraphQL] as StrawberryGraphQL
+    [FastAPI] as FastAPI
+    [LangChain] as LangChain
+  }
+  package "Frontend" {
+    [React] as React
+    [Vite] as Vite
+    [Firebase] as Firebase
+    [TypeScript] as TypeScript
+  }
+}
+
+package "Applications" {
+  component [admin_web] as admin_web_comp {
+    [BaseEntity]
+    [TenantSettings]
+    [TenantData]
+    [...]
+  }
+  component [hello_world_api] as hello_world_api_comp {
+    [get_environment]
+  }
+  component [api] as api_comp {
+    [MockLLMService]
+    [Settings]
+    [Neo4jCfg]
+    [...]
+  }
+}
+
+' Dependencies
+admin_web_comp ..> React
+admin_web_comp --> hello_world_api_comp
+admin_web_comp --> api_comp
+hello_world_api_comp ..> FastAPI
+hello_world_api_comp --> Neo4j
+api_comp ..> FastAPI
+api_comp --> Neo4j
+
+@enduml

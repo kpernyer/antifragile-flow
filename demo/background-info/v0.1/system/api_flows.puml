@@ -1,0 +1,24 @@
+@startuml Living Twin Monorepo - API Flows
+title API Request Flow - Auto Generated
+
+actor User
+participant "admin_web Web" as admin_web
+participant "hello_world_api API" as hello_world_api
+participant "api API" as api
+database "Neo4j" as Neo4j
+database "Redis" as Redis
+participant "OpenAI API" as OpenAIAPI
+participant "Firebase" as Firebase
+participant "Google Cloud Platform" as GoogleCloudPlatform
+
+== User Interaction ==
+User -> admin_web : Access application
+admin_web -> hello_world_api : GraphQL/REST request
+hello_world_api -> Neo4j : Query graph data
+Neo4j -> hello_world_api : Return results
+hello_world_api -> OpenAIAPI : AI processing
+OpenAIAPI -> hello_world_api : AI response
+hello_world_api -> admin_web : JSON response
+admin_web -> User : Render UI
+
+@enduml

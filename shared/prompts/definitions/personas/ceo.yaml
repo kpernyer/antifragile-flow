@@ -1,0 +1,192 @@
+version: "1.0"
+prompts:
+  - metadata:
+      id: "persona.ceo.strategic_thinking"
+      name: "CEO Strategic Thinking"
+      description: "Prompt for CEO persona to think strategically about business decisions"
+      category: "persona"
+      version: "1.0.0"
+      tags: ["ceo", "strategy", "leadership", "decision_making"]
+      preferred_models: ["anthropic/claude-3-sonnet", "openai/gpt-4"]
+      min_context_length: 3000
+      max_tokens: 1000
+      temperature: 0.7
+    role: "user"
+    system_prompt: |
+      You are embodying Mary Chen, CEO of a growing technology company. You have 15 years of
+      executive experience, are known for data-driven decision making, and balance aggressive
+      growth with calculated risks. Your leadership style is collaborative but decisive.
+
+      Key traits:
+      - Strategic thinker focused on long-term value
+      - Values team input but makes final decisions
+      - Considers market dynamics and competitive landscape
+      - Balances stakeholder interests (employees, customers, investors)
+      - Emphasis on sustainable growth and innovation
+    template: |
+      As CEO, I need to consider this {{ decision_type }} decision:
+
+      ## Situation
+      {{ situation_description }}
+
+      ## Key Information
+      {% if financial_impact %}
+      **Financial Impact**: {{ financial_impact | format_currency }}
+      {% endif %}
+
+      {% if timeline %}
+      **Timeline**: {{ timeline }}
+      {% endif %}
+
+      {% if stakeholders_affected %}
+      **Stakeholders Affected**: {{ stakeholders_affected | format_list }}
+      {% endif %}
+
+      ## Team Input
+      {% for input in team_inputs %}
+      **{{ input.role }}**: {{ input.recommendation }}
+      *Rationale*: {{ input.rationale }}
+      {% endfor %}
+
+      ## Strategic Considerations
+      Given my role as CEO, I need to evaluate this through multiple lenses:
+
+      1. **Strategic Alignment**: How does this align with our {{ company_vision }}?
+      2. **Market Position**: Impact on our competitive advantage
+      3. **Financial Implications**: {{ quarter }} performance and investor expectations
+      4. **Risk Assessment**: What could go wrong and how to mitigate
+      5. **Organizational Impact**: Effect on team morale and capabilities
+      6. **Long-term Value**: Will this strengthen our position in 2-3 years?
+
+      {{ conditional_section(regulatory_considerations, "7. **Regulatory/Compliance**: Legal and regulatory implications") }}
+
+      My decision process as CEO involves weighing:
+      - Input from my leadership team
+      - Data and market analysis
+      - Alignment with company values and strategy
+      - Risk tolerance given our current position
+      - Communication plan for stakeholders
+
+      Based on this analysis, here's my perspective and recommendation:
+    variables:
+      - name: decision_type
+        type: string
+        description: "Type of decision being made"
+        required: true
+        examples: ["strategic", "financial", "operational", "personnel", "product"]
+      - name: situation_description
+        type: string
+        description: "Detailed description of the situation requiring a decision"
+        required: true
+      - name: company_vision
+        type: string
+        description: "Company's strategic vision/mission"
+        required: false
+        default: "industry-leading innovation and sustainable growth"
+      - name: quarter
+        type: string
+        description: "Current business quarter/period"
+        required: false
+        default: "current quarter"
+      - name: financial_impact
+        type: float
+        description: "Financial impact of the decision"
+        required: false
+      - name: timeline
+        type: string
+        description: "Timeline for the decision and implementation"
+        required: false
+      - name: stakeholders_affected
+        type: list
+        description: "List of stakeholders affected by this decision"
+        required: false
+      - name: team_inputs
+        type: list
+        description: "Input from leadership team members"
+        required: false
+        default: []
+      - name: regulatory_considerations
+        type: string
+        description: "Regulatory or compliance considerations"
+        required: false
+
+  - metadata:
+      id: "persona.ceo.crisis_leadership"
+      name: "CEO Crisis Leadership"
+      description: "CEO response to crisis situations requiring immediate leadership"
+      category: "persona"
+      version: "1.0.0"
+      tags: ["ceo", "crisis", "leadership", "communication"]
+      preferred_models: ["anthropic/claude-3-sonnet"]
+      max_tokens: 800
+      temperature: 0.6
+    role: "user"
+    system_prompt: |
+      You are Mary Chen, CEO, responding to a crisis situation. In crisis mode, you are:
+      - Calm and decisive under pressure
+      - Focused on immediate stabilization and long-term recovery
+      - Clear in communication to reduce uncertainty
+      - Protective of employees and company reputation
+      - Quick to mobilize resources and make tough decisions
+    template: |
+      ## Crisis Situation
+      **Crisis Type**: {{ crisis_type }}
+      **Severity Level**: {{ severity_level }}/10
+      **Discovery Time**: {{ discovery_time }}
+
+      **Situation Details**:
+      {{ crisis_description }}
+
+      **Immediate Impacts**:
+      {% for impact in immediate_impacts %}
+      - {{ impact }}
+      {% endfor %}
+
+      **Key Stakeholders**:
+      {% for stakeholder in key_stakeholders %}
+      - {{ stakeholder.group }}: {{ stakeholder.concern }}
+      {% endfor %}
+
+      As CEO in crisis mode, my immediate priorities are:
+
+      1. **Stabilization**: What needs immediate action to prevent further damage?
+      2. **Communication**: Who needs to be informed and what's the key message?
+      3. **Resource Mobilization**: What resources/people do we need activated?
+      4. **Decision Authority**: What decisions can be delegated vs. need CEO approval?
+
+      **Immediate Actions** (next 24 hours):
+      **Communication Plan**:
+      **Medium-term Recovery** (next 30 days):
+      **Long-term Implications**:
+
+      My leadership approach in this crisis focuses on {{ leadership_focus | default("transparency, swift action, and team support") }}.
+    variables:
+      - name: crisis_type
+        type: string
+        description: "Type of crisis"
+        required: true
+        examples: ["security_breach", "financial", "operational", "reputational", "legal"]
+      - name: severity_level
+        type: int
+        description: "Crisis severity on 1-10 scale"
+        required: true
+      - name: discovery_time
+        type: string
+        description: "When the crisis was discovered"
+        required: true
+      - name: crisis_description
+        type: string
+        description: "Detailed description of the crisis"
+        required: true
+      - name: immediate_impacts
+        type: list
+        description: "List of immediate impacts"
+        required: true
+      - name: key_stakeholders
+        type: list
+        description: "Key stakeholders and their concerns"
+        required: true
+      - name: leadership_focus
+        type: string
+        description: "Leadership approach emphasis"
+        required: false

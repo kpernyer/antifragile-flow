@@ -1,0 +1,158 @@
+version: "1.0"
+prompts:
+  - metadata:
+      id: "consensus_builder.facilitate_decision"
+      name: "Decision Facilitation"
+      description: "Facilitate group decision-making and consensus building"
+      category: "agent"
+      version: "1.1.0"
+      tags: ["consensus", "decision", "facilitation", "group_dynamics"]
+      preferred_models: ["anthropic/claude-3-sonnet", "openai/gpt-4"]
+      min_context_length: 4000
+      max_tokens: 1500
+      temperature: 0.6
+    role: "user"
+    system_prompt: |
+      You are an expert facilitator specializing in consensus building and group decision-making.
+      Your role is to help teams reach well-informed decisions by presenting different perspectives,
+      identifying common ground, and suggesting paths forward that consider all stakeholders.
+    template: |
+      I need help facilitating a decision on: **{{ decision_topic }}**
+
+      ## Context
+      {{ decision_context | format_decision_context(true, true) }}
+
+      ## Participants and Their Input:
+      {% for participant in participants %}
+      ### {{ participant.name }} ({{ participant.role | format_persona }})
+      **Position**: {{ participant.position }}
+      **Reasoning**: {{ participant.reasoning }}
+      **Concerns**: {{ participant.concerns | format_list }}
+
+      {% endfor %}
+
+      ## Current Status
+      - **Agreement Level**: {{ agreement_level }}/10
+      - **Time Remaining**: {{ time_remaining }}
+      - **Decision Method**: {{ decision_method }}
+
+      Please provide:
+
+      1. **Consensus Analysis**:
+         - Areas of agreement
+         - Key disagreements and their root causes
+         - Missing perspectives or information
+
+      2. **Facilitation Strategy**:
+         - Questions to explore disagreements
+         - Possible compromises or alternatives
+         - Process recommendations for next steps
+
+      3. **Decision Recommendations**:
+         - Most viable path forward
+         - Risk mitigation strategies
+         - Communication plan for the decision
+
+      {% if previous_decisions %}
+      4. **Consistency Check**: How this aligns with previous decisions:
+      {{ previous_decisions | indent_text(4) }}
+      {% endif %}
+
+      Focus on finding win-win solutions and building genuine consensus rather than forcing agreement.
+    variables:
+      - name: decision_topic
+        type: string
+        description: "The decision that needs to be made"
+        required: true
+        examples: ["Budget allocation for Q2", "New product launch strategy", "Office relocation"]
+      - name: decision_context
+        type: dict
+        description: "Decision background, objectives, and constraints"
+        required: true
+      - name: participants
+        type: list
+        description: "List of participants with their positions and reasoning"
+        required: true
+      - name: agreement_level
+        type: int
+        description: "Current agreement level from 1-10"
+        required: true
+      - name: time_remaining
+        type: string
+        description: "Time deadline for the decision"
+        required: true
+      - name: decision_method
+        type: string
+        description: "Decision-making method (consensus, majority, authority)"
+        required: false
+        default: "consensus"
+      - name: previous_decisions
+        type: string
+        description: "Context from related previous decisions"
+        required: false
+
+  - metadata:
+      id: "consensus_builder.conflict_resolution"
+      name: "Conflict Resolution"
+      description: "Help resolve conflicts and disagreements in decision-making"
+      category: "agent"
+      version: "1.0.0"
+      tags: ["conflict", "resolution", "mediation", "stakeholders"]
+      preferred_models: ["anthropic/claude-3-sonnet"]
+      max_tokens: 1200
+      temperature: 0.5
+    role: "user"
+    template: |
+      There's a significant disagreement that needs resolution:
+
+      ## Conflict Overview
+      **Issue**: {{ conflict_issue }}
+      **Impact**: {{ conflict_impact }}
+      **Urgency**: {{ urgency_level }}
+
+      ## Conflicting Positions:
+      {% for position in conflicting_positions %}
+      ### Position {{ loop.index }}: {{ position.title }}
+      **Stakeholders**: {{ position.stakeholders | format_list }}
+      **Core Argument**: {{ position.argument }}
+      **Underlying Interests**: {{ position.interests }}
+      **Non-negotiables**: {{ position.non_negotiables | format_list }}
+
+      {% endfor %}
+
+      ## Constraints and Requirements
+      {% if constraints %}
+      {{ constraints | format_list }}
+      {% endif %}
+
+      Please provide a conflict resolution approach:
+
+      1. **Root Cause Analysis**: What's really driving this disagreement?
+      2. **Common Ground**: Shared interests and values
+      3. **Creative Alternatives**: Options that might satisfy core interests
+      4. **Resolution Process**: Step-by-step approach to reach agreement
+      5. **Success Metrics**: How to measure if resolution is successful
+
+      Focus on interests rather than positions, and look for integrative solutions.
+    variables:
+      - name: conflict_issue
+        type: string
+        description: "Description of the conflicting issue"
+        required: true
+      - name: conflict_impact
+        type: string
+        description: "Impact of not resolving this conflict"
+        required: true
+      - name: urgency_level
+        type: string
+        description: "How urgent this resolution is"
+        required: true
+        examples: ["low", "medium", "high", "critical"]
+      - name: conflicting_positions
+        type: list
+        description: "List of conflicting positions with details"
+        required: true
+      - name: constraints
+        type: list
+        description: "External constraints affecting the resolution"
+        required: false

@@ -5,6 +5,15 @@ TEMPLATES_DIR = templates
 README = README.md
 TEMPORAL_PID := $(shell pgrep -f "temporal server start-dev" | head -n 1)
 
+# Language directories
+LANG_DIRS = python typescript
+DOCKER_REGISTRY ?= gcr.io/$(GCP_PROJECT)
+GCP_PROJECT ?= antifragile-flow
+ENVIRONMENT ?= dev
+
+# Default target
+.DEFAULT_GOAL := all
+
 generate-readme:
 	@echo "Copy readme template"
 	@cp ${TEMPLATES_DIR}/${README}.tpl ${README}
@@ -29,3 +38,506 @@ temporal-stop:
 	fi
 	@echo "Restart Temporal by running \"make temporal\""
 .PHONY: temporal-stop
+
+# =============================================================================
+# RECURSIVE BUILD SYSTEM
+# =============================================================================
+
+# Complete setup and demo preparation
+all: clean install build lint typecheck test docker-build temporal-setup demo-ready
+.PHONY: all
+
+# Setup temporal and start worker
+temporal-setup:
+	@echo "🚀 Setting up Temporal and starting worker..."
+	@# Kill any existing temporal processes
+	@pkill -f "temporal server start-dev" 2>/dev/null || true
+	@sleep 2
+	@# Start temporal in background
+	@temporal server start-dev --ip=0.0.0.0 &
+	@echo "⏳ Waiting for Temporal server to start..."
+	@sleep 10
+	@# Start Python worker in background
+	@cd python/src && nohup uv run worker.py > worker.log 2>&1 &
+	@echo "✅ Temporal server started on localhost:7233/8233"
+	@echo "✅ Python worker started"
+.PHONY: temporal-setup
+
+# Demo ready instructions
+demo-ready:
+	@echo ""
+	@echo "🎯 ANTIFRAGILE FLOW DEMO IS READY!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "🌐 OPEN WEB UI: http://localhost:8233"
+	@echo ""
+	@echo "📱 DEMO SCENARIO 1: Strategic Decision Workflow"
+	@echo "   Terminal 1 (CEO Mary):    cd python/src && uv run user_client.py mary"
+	@echo "   Terminal 2 (VP John):     cd python/src && uv run user_client.py john"
+	@echo "   Terminal 3 (VP Isac):     cd python/src && uv run user_client.py isac"
+	@echo "   Terminal 4 (VP Priya):    cd python/src && uv run user_client.py priya"
+	@echo ""
+	@echo "📱 DEMO SCENARIO 2: Competitor Analysis Workflow"
+	@echo "   Terminal 1 (VP Sales):    cd python/src && uv run user_client.py john"
+	@echo "   Terminal 2 (VP Eng):      cd python/src && uv run user_client.py isac"
+	@echo "   Terminal 3 (VP Legal):    cd python/src && uv run user_client.py priya"
+	@echo "   Terminal 4 (CEO):         cd python/src && uv run user_client.py mary"
+	@echo ""
+	@echo "🎬 DEMO SCRIPT:"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Step 1: CEO Mary starts strategic decision (option 2)"
+	@echo "        → 'We should acquire TechCorp to expand our AI capabilities'"
+	@echo ""
+	@echo "Step 2: VPs check priorities (option 1) and see new task"
+	@echo "        → Type 'respond' to respond to workflow"
+	@echo ""
+	@echo "Step 3: Each VP provides input (approve/reject/modify + reasoning)"
+	@echo ""
+	@echo "Step 4: CEO makes final decision after seeing VP responses"
+	@echo ""
+	@echo "Step 5: VP Sales starts competitor analysis (option 3)"
+	@echo "        → Competitor: 'RivalCorp', Threat: 'New AI product launch'"
+	@echo ""
+	@echo "Step 6: Engineering and Legal provide analysis"
+	@echo ""
+	@echo "Step 7: CEO decides strategy response"
+	@echo ""
+	@echo "🔍 MONITORING:"
+	@echo "   • Web UI: http://localhost:8233/namespaces/default/workflows"
+	@echo "   • Worker logs: tail -f python/src/worker.log"
+	@echo "   • Query workflow: Option 4 in any user terminal"
+	@echo ""
+	@echo "🛠️  TROUBLESHOOTING:"
+	@echo "   • Restart worker: pkill -f worker.py && cd python/src && uv run worker.py &"
+	@echo "   • Restart temporal: make temporal-stop && make temporal"
+	@echo "   • View database: cd python/src && uv run -c 'from db_inbox_service import *; print_all_data()'"
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🎯 READY TO DEMONSTRATE HUMAN-IN-THE-LOOP TEMPORAL WORKFLOWS!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+.PHONY: demo-ready
+.PHONY: all
+
+# Install dependencies for all modules
+install:
+	@echo "Installing dependencies for all modules..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Installing dependencies for $$dir..."; \
+		$(MAKE) -C $$dir install || exit 1; \
+	done
+	@echo "All dependencies installed successfully!"
+.PHONY: install
+
+# Build all modules
+build:
+	@echo "Building all modules..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Building $$dir..."; \
+		$(MAKE) -C $$dir build || exit 1; \
+	done
+.PHONY: build
+
+# Test all modules
+test:
+	@echo "Testing all modules..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Testing $$dir..."; \
+		$(MAKE) -C $$dir test || exit 1; \
+	done
+.PHONY: test
+
+# Lint all modules and root Python code
+lint:
+	@echo "Linting all modules and root code..."
+	@echo "Running ruff on root Python code..."
+	@uv run ruff check . || true
+	@for dir in $(LANG_DIRS); do \
+		echo "Linting $$dir..."; \
+		$(MAKE) -C $$dir lint || exit 1; \
+	done
+.PHONY: lint
+
+# Type check all modules and root Python code
+typecheck:
+	@echo "Type checking all modules and root code..."
+	@echo "Running mypy on root Python code..."
+	@uv run mypy . || true
+	@for dir in $(LANG_DIRS); do \
+		if [ -f "$$dir/Makefile" ] && grep -q "typecheck:" "$$dir/Makefile"; then \
+			echo "Type checking $$dir..."; \
+			$(MAKE) -C $$dir typecheck || exit 1; \
+		fi; \
+	done
+.PHONY: typecheck
+
+# Format all modules and root Python code
+format:
+	@echo "Formatting all modules and root code..."
+	@echo "Running ruff format on root Python code..."
+	@uv run ruff format . || true
+	@for dir in $(LANG_DIRS); do \
+		echo "Formatting $$dir..."; \
+		$(MAKE) -C $$dir format || exit 1; \
+	done
+.PHONY: format
+
+# Fix linting issues automatically
+lint-fix:
+	@echo "Auto-fixing lint issues in all modules and root code..."
+	@echo "Running ruff fix on root Python code..."
+	@uv run ruff check --fix . || true
+	@for dir in $(LANG_DIRS); do \
+		if [ -f "$$dir/Makefile" ] && grep -q "lint-fix:" "$$dir/Makefile"; then \
+			echo "Auto-fixing $$dir..."; \
+			$(MAKE) -C $$dir lint-fix || exit 1; \
+		fi; \
+	done
+.PHONY: lint-fix
+
+# Security scan
+security-scan:
+	@echo "Running security scans..."
+	@echo "Running bandit on Python code..."
+	@uv run bandit -r . -f json -o bandit-report.json || true
+	@echo "Security scan complete. Check bandit-report.json for details."
+.PHONY: security-scan
+
+# Pre-commit setup and run
+pre-commit-install:
+	@echo "Installing pre-commit hooks..."
+	@uv run pre-commit install
+.PHONY: pre-commit-install
+
+pre-commit-run:
+	@echo "Running pre-commit hooks on all files..."
+	@uv run pre-commit run --all-files
+.PHONY: pre-commit-run
+
+# Quality gate - run all quality checks
+quality: lint typecheck security-scan test prompts-validate
+	@echo "All quality checks passed!"
+.PHONY: quality
+
+# Prompt management
+prompts-validate:
+	@echo "Validating prompt definitions..."
+	@uv run python -m shared.prompts.cli validate
+.PHONY: prompts-validate
+
+prompts-list:
+	@echo "Listing available prompts..."
+	@uv run python -m shared.prompts.cli list
+.PHONY: prompts-list
+
+prompts-stats:
+	@echo "Showing prompt usage statistics..."
+	@uv run python -m shared.prompts.cli stats --details
+.PHONY: prompts-stats
+
+prompts-show:
+	@echo "Usage: make prompts-show PROMPT_ID=<prompt_id>"
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Example: make prompts-show PROMPT_ID=document_processor.analyze_document"; \
+		exit 1; \
+	fi
+	@uv run python -m shared.prompts.cli show $(PROMPT_ID)
+.PHONY: prompts-show
+
+prompts-test:
+	@echo "Usage: make prompts-test PROMPT_ID=<prompt_id> VARS='var1=value1 var2=value2'"
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Example: make prompts-test PROMPT_ID=document_processor.analyze_document VARS='document_type=contract'"; \
+		exit 1; \
+	fi
+	@if [ -n "$(VARS)" ]; then \
+		uv run python -m shared.prompts.cli test $(PROMPT_ID) $(foreach var,$(VARS),--variables "$(var)") --system-user-split; \
+	else \
+		uv run python -m shared.prompts.cli test $(PROMPT_ID) --system-user-split; \
+	fi
+.PHONY: prompts-test
+
+# Clean all modules
+clean:
+	@echo "Cleaning all modules..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Cleaning $$dir..."; \
+		$(MAKE) -C $$dir clean || exit 1; \
+	done
+.PHONY: clean
+
+# =============================================================================
+# DOCKER ORCHESTRATION
+# =============================================================================
+
+# Build Docker images for all modules
+docker-build:
+	@echo "Building Docker images for all modules..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Building Docker image for $$dir..."; \
+		$(MAKE) -C $$dir docker-build || exit 1; \
+	done
+.PHONY: docker-build
+
+# Push Docker images
+docker-push:
+	@echo "Pushing Docker images..."
+	@for dir in $(LANG_DIRS); do \
+		echo "Pushing Docker image for $$dir..."; \
+		$(MAKE) -C $$dir docker-push || exit 1; \
+	done
+.PHONY: docker-push
+
+# Start all services with Docker Compose
+docker-up:
+	@echo "Starting all services with Docker Compose..."
+	docker compose up -d
+.PHONY: docker-up
+
+# Stop all Docker services
+docker-down:
+	@echo "Stopping all Docker services..."
+	docker compose down
+.PHONY: docker-down
+
+# =============================================================================
+# TERRAFORM DEPLOYMENT
+# =============================================================================
+
+# Initialize Terraform
+terraform-init:
+	@echo "Initializing Terraform..."
+	cd terraform && terraform init
+.PHONY: terraform-init
+
+# Plan Terraform deployment
+terraform-plan:
+	@echo "Planning Terraform deployment for $(ENVIRONMENT)..."
+	cd terraform && terraform plan -var="environment=$(ENVIRONMENT)" -var="gcp_project=$(GCP_PROJECT)"
+.PHONY: terraform-plan
+
+# Apply Terraform deployment
+terraform-apply:
+	@echo "Applying Terraform deployment for $(ENVIRONMENT)..."
+	cd terraform && terraform apply -var="environment=$(ENVIRONMENT)" -var="gcp_project=$(GCP_PROJECT)" -auto-approve
+.PHONY: terraform-apply
+
+# Destroy Terraform deployment
+terraform-destroy:
+	@echo "Destroying Terraform deployment for $(ENVIRONMENT)..."
+	cd terraform && terraform destroy -var="environment=$(ENVIRONMENT)" -var="gcp_project=$(GCP_PROJECT)" -auto-approve
+.PHONY: terraform-destroy
+
+# Full deployment pipeline
+deploy: build test docker-build docker-push terraform-apply
+	@echo "Deployment complete!"
+.PHONY: deploy
+
+# Development setup
+dev-setup: temporal docker-up
+	@echo "Development environment ready!"
+.PHONY: dev-setup
+
+# CI pipeline
+ci: lint typecheck security-scan test build
+	@echo "CI pipeline complete!"
+.PHONY: ci
+
+# Check all dependencies and servers
+check:
+	@echo "🔍 Checking all dependencies and servers..."
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔧 CORE DEPENDENCIES"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@printf "🐹 Go:           "
+	@if command -v go >/dev/null 2>&1; then \
+		echo "✅ $$(go version)"; \
+	else \
+		echo "❌ Not installed (brew install go)"; \
+	fi
+	@printf "🐍 Python:       "
+	@if command -v python3 >/dev/null 2>&1; then \
+		echo "✅ $$(python3 --version)"; \
+	else \
+		echo "❌ Not installed"; \
+	fi
+	@printf "📦 uv:           "
+	@if command -v uv >/dev/null 2>&1; then \
+		echo "✅ $$(uv --version)"; \
+	else \
+		echo "❌ Not installed (curl -LsSf https://astral.sh/uv/install.sh | sh)"; \
+	fi
+	@printf "🟨 Node.js:      "
+	@if command -v node >/dev/null 2>&1; then \
+		echo "✅ $$(node --version)"; \
+	else \
+		echo "❌ Not installed (brew install node)"; \
+	fi
+	@printf "📦 pnpm:         "
+	@if command -v pnpm >/dev/null 2>&1; then \
+		echo "✅ $$(pnpm --version)"; \
+	else \
+		echo "❌ Not installed (npm install -g pnpm)"; \
+	fi
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "⚡ TEMPORAL & TOOLS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@printf "🔄 Temporal CLI: "
+	@if command -v temporal >/dev/null 2>&1; then \
+		echo "✅ $$(temporal --version 2>&1 | head -n1)"; \
+	else \
+		echo "❌ Not installed (brew install temporal)"; \
+	fi
+	@printf "🐳 Docker:       "
+	@if command -v docker >/dev/null 2>&1; then \
+		echo "✅ $$(docker --version)"; \
+	else \
+		echo "❌ Not installed (brew install docker)"; \
+	fi
+	@printf "🐙 Docker Compose: "
+	@if command -v docker-compose >/dev/null 2>&1 || docker compose version >/dev/null 2>&1; then \
+		if docker compose version >/dev/null 2>&1; then \
+			echo "✅ $$(docker compose version)"; \
+		else \
+			echo "✅ $$(docker-compose --version)"; \
+		fi; \
+	else \
+		echo "❌ Not installed"; \
+	fi
+	@printf "🏗️  Make:         "
+	@if command -v make >/dev/null 2>&1; then \
+		echo "✅ $$(make --version | head -n1)"; \
+	else \
+		echo "❌ Not installed"; \
+	fi
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔍 DEVELOPMENT TOOLS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@printf "🔧 Terraform:    "
+	@if command -v terraform >/dev/null 2>&1; then \
+		echo "✅ $$(terraform --version | head -n1)"; \
+	else \
+		echo "❌ Not installed (brew install terraform)"; \
+	fi
+	@printf "☁️  gcloud:       "
+	@if command -v gcloud >/dev/null 2>&1; then \
+		echo "✅ $$(gcloud --version | head -n1)"; \
+	else \
+		echo "❌ Not installed (brew install google-cloud-sdk)"; \
+	fi
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🖥️  SERVER STATUS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@printf "🔄 Temporal Server (7233): "
+	@if nc -z localhost 7233 2>/dev/null; then \
+		echo "✅ Running"; \
+	else \
+		echo "❌ Not running (make temporal)"; \
+	fi
+	@printf "🌐 Temporal UI (8233):     "
+	@if nc -z localhost 8233 2>/dev/null; then \
+		echo "✅ Running (http://localhost:8233)"; \
+	else \
+		echo "❌ Not running (make temporal)"; \
+	fi
+	@printf "🐳 Docker Temporal (8080): "
+	@if nc -z localhost 8080 2>/dev/null; then \
+		echo "✅ Running (http://localhost:8080)"; \
+	else \
+		echo "⏸️  Not running (make docker-up)"; \
+	fi
+	@printf "🗄️  PostgreSQL (5432):     "
+	@if nc -z localhost 5432 2>/dev/null; then \
+		echo "✅ Running"; \
+	else \
+		echo "⏸️  Not running (make docker-up)"; \
+	fi
+	@printf "🔴 Redis (6379):          "
+	@if nc -z localhost 6379 2>/dev/null; then \
+		echo "✅ Running"; \
+	else \
+		echo "⏸️  Not running (make docker-up)"; \
+	fi
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📦 PROJECT DEPENDENCIES"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@printf "🐍 Python env:            "
+	@if [ -d python/.venv ]; then \
+		echo "✅ Ready"; \
+	else \
+		echo "❌ Run 'make install'"; \
+	fi
+	@printf "🟨 TypeScript node_modules: "
+	@if [ -d typescript/node_modules ]; then \
+		echo "✅ Ready"; \
+	else \
+		echo "❌ Run 'make install'"; \
+	fi
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "💡 QUICK FIXES"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔧 Install missing dependencies:  make install"
+	@echo "🚀 Start Temporal server:         make temporal"
+	@echo "🐳 Start all Docker services:     make docker-up"
+	@echo "🏗️  Build everything:             make build"
+	@echo "✅ Run full setup:                make"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+.PHONY: check
+
+# Help target
+help:
+	@echo "Available targets:"
+	@echo ""
+	@echo "📋 SETUP & CHECKS:"
+	@echo "  check              - Check all dependencies and servers"
+	@echo "  install            - Install dependencies for all modules"
+	@echo "  all                - Complete setup and demo preparation"
+	@echo ""
+	@echo "🔨 DEVELOPMENT:"
+	@echo "  build              - Build all modules"
+	@echo "  test               - Test all modules"
+	@echo "  dev-setup          - Setup development environment"
+	@echo ""
+	@echo "🧹 CODE QUALITY:"
+	@echo "  lint               - Lint all modules and root code"
+	@echo "  typecheck          - Type check all modules and root code"
+	@echo "  format             - Format all modules and root code"
+	@echo "  lint-fix           - Auto-fix linting issues"
+	@echo "  security-scan      - Run security scans"
+	@echo "  quality            - Run all quality checks (includes prompts)"
+	@echo "  pre-commit-install - Install pre-commit hooks"
+	@echo "  pre-commit-run     - Run pre-commit hooks"
+	@echo ""
+	@echo "📝 PROMPT MANAGEMENT:"
+	@echo "  prompts-validate   - Validate all prompt definitions"
+	@echo "  prompts-list       - List all available prompts"
+	@echo "  prompts-stats      - Show prompt usage statistics"
+	@echo "  prompts-show       - Show specific prompt (PROMPT_ID=<id>)"
+	@echo "  prompts-test       - Test prompt rendering (PROMPT_ID=<id> VARS='key=val')"
+	@echo ""
+	@echo "🔄 TEMPORAL:"
+	@echo "  temporal           - Start Temporal server"
+	@echo "  temporal-stop      - Stop Temporal server"
+	@echo "  temporal-setup     - Complete Temporal setup with worker"
+	@echo ""
+	@echo "🐳 DOCKER:"
+	@echo "  docker-build       - Build Docker images"
+	@echo "  docker-push        - Push Docker images"
+	@echo "  docker-up          - Start services with Docker Compose"
+	@echo "  docker-down        - Stop Docker services"
+	@echo ""
+	@echo "☁️  DEPLOYMENT:"
+	@echo "  terraform-init     - Initialize Terraform"
+	@echo "  terraform-plan     - Plan Terraform deployment"
+	@echo "  terraform-apply    - Apply Terraform deployment"
+	@echo "  deploy             - Full deployment pipeline"
+	@echo ""
+	@echo "🔄 PIPELINES:"
+	@echo "  ci                 - Run CI pipeline (lint, typecheck, security, test, build)"
+	@echo "  clean              - Clean all modules"
+.PHONY: help

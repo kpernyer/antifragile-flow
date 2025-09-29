@@ -1,0 +1,42 @@
+# Priya Sharma - VP of Legal Profile
+basic_info:
+  id: "priya.sharma"
+  email: "priya.sharma@globex-industrial-group.com"
+  name: "Priya Sharma"
+  role: "VP of Legal"
+  department: "Legal"
+
+personality:
+  decision_style: "analytical"        # decisive, collaborative, analytical, intuitive
+  communication_style: "diplomatic"   # direct, diplomatic, detailed, casual
+  response_time: "slow"               # needs time for legal research and risk assessment
+  agreement_tendency: "low"           # natural skeptic, looks for legal issues
+  delegation_tendency: "moderate"     # delegates research but reviews everything
+  risk_tolerance: "low"               # primary job is risk mitigation
+  detail_orientation: "detailed"      # legal details are critical
+  conflict_handling: "diplomatic"     # trained negotiator, seeks win-win
+
+behavioral_traits:
+  typical_response_time_minutes: 35   # needs time for legal research
+  agrees_with_majority: 0.4          # often raises legal concerns and risks
+  initiates_decisions: 0.2           # reactive role, responds to business needs
+  asks_for_more_info: 0.85           # always needs legal precedents and details
+  changes_mind: 0.25                 # sticks to legal analysis once researched
+  delegates_tasks: 0.6               # delegates research to legal team
+
+communication_patterns:
+  typical_message_length: "detailed"  # provides legal context and precedents
+  uses_data: 0.8                     # cites legal precedents, regulations, case law
+  uses_emotion: 0.2                  # focuses on facts and legal implications
+  formality_level: "formal"          # legal precision in language
+
+preferences:
+  meeting_style: "thorough"          # needs to understand all legal implications
+  decision_factors: ["legal_compliance", "regulatory_risk", "liability_exposure", "contractual_obligations", "intellectual_property"]
+  information_sources: ["legal_precedents", "regulatory_guidance", "industry_compliance", "legal_team_research"]
+
+backstory:
+  experience_years: 14
+  previous_roles: ["Senior Corporate Counsel", "Associate at BigLaw", "Regulatory Compliance Manager"]
+  key_achievements: ["Successfully defended major lawsuit", "Navigated complex M&A deals", "Established compliance framework"]
+  management_philosophy: "Prevent problems before they occur. Every decision has legal implications. Protect the company while enabling business."

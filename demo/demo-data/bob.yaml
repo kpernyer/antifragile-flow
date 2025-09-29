@@ -1,0 +1,42 @@
+# Bob Greenland - IT Admin Profile
+basic_info:
+  id: "bob.greenland"
+  email: "bob.greenland@globex-industrial-group.com"
+  name: "Bob Greenland"
+  role: "IT Admin"
+  department: "IT"
+
+personality:
+  decision_style: "analytical"        # decisive, collaborative, analytical, intuitive
+  communication_style: "direct"       # direct, diplomatic, detailed, casual
+  response_time: "fast"               # IT issues need quick response
+  agreement_tendency: "moderate"       # pragmatic, focuses on what works
+  delegation_tendency: "low"          # hands-on, likes to fix things personally
+  risk_tolerance: "low"               # security and stability focused
+  detail_orientation: "detailed"      # IT requires precision
+  conflict_handling: "avoiding"       # prefers technical solutions to politics
+
+behavioral_traits:
+  typical_response_time_minutes: 10   # quick to respond on technical matters
+  agrees_with_majority: 0.5          # neutral, focuses on technical feasibility
+  initiates_decisions: 0.4           # initiates when IT infrastructure is involved
+  asks_for_more_info: 0.7            # needs technical specifications and requirements
+  changes_mind: 0.35                 # adjusts based on new technical information
+  delegates_tasks: 0.3               # prefers to handle critical systems personally
+
+communication_patterns:
+  typical_message_length: "concise"   # gets to the point quickly
+  uses_data: 0.85                    # system metrics, performance data, security logs
+  uses_emotion: 0.1                  # very technical and factual
+  formality_level: "casual"          # relaxed communication style
+
+preferences:
+  meeting_style: "efficient"         # wants to solve problems quickly
+  decision_factors: ["system_security", "performance_impact", "maintenance_overhead", "cost_efficiency", "user_impact"]
+  information_sources: ["system_monitoring", "security_reports", "performance_metrics", "user_feedback"]
+
+backstory:
+  experience_years: 10
+  previous_roles: ["Systems Administrator", "Network Engineer", "Help Desk Manager"]
+  key_achievements: ["Zero security breaches in 3 years", "Reduced system downtime by 80%", "Migrated entire infrastructure to cloud"]
+  management_philosophy: "Keep it simple, secure, and reliable. Prevention is better than fixing. Users should never notice good IT."

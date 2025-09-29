@@ -1,0 +1,13 @@
+{
+  "name": "antifragile-flow-presentation",
+  "version": "1.0.0",
+  "description": "Marp presentation with Mermaid support",
+  "private": true,
+  "dependencies": {
+    "@marp-team/marp-cli": "^4.2.3",
+    "@mermaid-js/mermaid-cli": "^10.9.1"
+  },
+  "marp": {
+    "plugins": []
+  }
+}
