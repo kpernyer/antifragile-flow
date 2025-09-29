@@ -1,0 +1,47 @@
+{
+  "request": {
+    "organization_name": "TechCorp Inc",
+    "organization_id": "techcorp_001",
+    "documents": [
+      {
+        "text": "\n            TechCorp Inc. Strategic Vision 2024\n\n            Our organization is committed to excellence and innovation in technology solutions.\n            We believe in sustainable growth, ethical business practices, and empowering our teams.\n\n            Core Values:\n            - Excellence in everything we do\n            - Innovation through creative problem solving\n            - Integrity and transparency in all relationships\n            - Sustainability for future generations\n\n            Strategic Objectives:\n            - Develop cutting-edge AI solutions\n            - Expand market presence in emerging technologies\n            - Foster a culture of continuous learning\n            - Build strong partnerships with industry leaders\n            ",
+        "title": "TechCorp Strategic Vision 2024",
+        "type": "strategic_document"
+      },
+      {
+        "text": "\n            Q3 Financial Performance Summary\n\n            Revenue Growth: 15% quarter-over-quarter\n            Customer Satisfaction: 92% (industry leading)\n            Employee Retention: 94% (above industry average)\n\n            Key Achievements:\n            - Launched new AI platform with 10,000+ users\n            - Signed 3 major enterprise contracts\n            - Expanded team by 25% with top talent\n            - Achieved carbon neutral operations\n\n            Market Position:\n            We continue to lead in innovative technology solutions while maintaining\n            our commitment to sustainable and ethical business practices.\n            ",
+        "title": "Q3 Financial Performance",
+        "type": "financial_report"
+      },
+      {
+        "text": "\n            Product Development Guidelines\n\n            At TechCorp, we follow rigorous development standards to ensure quality\n            and innovation in all our products:\n\n            Development Principles:\n            - User-centered design approach\n            - Agile development methodologies\n            - Continuous testing and iteration\n            - Security-first implementation\n\n            Quality Standards:\n            - 99.9% uptime requirement\n            - Sub-100ms response times\n            - Zero-tolerance for security vulnerabilities\n            - Comprehensive documentation required\n\n            Our development process reflects our organizational commitment to\n            excellence and our responsibility to deliver exceptional value to customers.\n            ",
+        "title": "Product Development Guidelines",
+        "type": "operational_document"
+      }
+    ],
+    "model_type": "ModelType.MISTRAL_7B",
+    "organizational_values": [
+      "excellence",
+      "innovation",
+      "integrity",
+      "sustainability"
+    ],
+    "communication_style": "professional",
+    "priority": "high",
+    "deploy_to_ollama": true,
+    "requester_email": "test@techcorp.com"
+  },
+  "result": {
+    "job_id": "train_techcorp_001_9f963cb4",
+    "organization_name": "TechCorp Inc",
+    "status": "TrainingJobStatus.QUEUED",
+    "created_at": "2025-09-29 15:09:13.590544",
+    "started_at": null,
+    "completed_at": null,
+    "model_location": null,
+    "ollama_model_name": null,
+    "training_duration_minutes": 0.0,
+    "training_examples_count": 0,
+    "error_message": null
+  }
+}

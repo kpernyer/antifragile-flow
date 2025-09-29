@@ -1,0 +1,58 @@
+{
+  "request": {
+    "organization_name": "Globex Industrial Group",
+    "organization_id": "globex-industrial",
+    "documents": [
+      {
+        "text": "Globex Industrial Group is a leading multinational manufacturer of advanced equipment and solutions for heavy industry and infrastructure. Our tagline is 'Innovating Tomorrow's Infrastructure' and we focus on delivering cutting-edge solutions across four main product lines.",
+        "title": "Company Overview",
+        "type": "corporate_profile"
+      },
+      {
+        "text": "At Globex Industrial Group, we are committed to innovation, sustainability, and infrastructure excellence. We believe in innovating tomorrow's infrastructure through advanced engineering, sustainable manufacturing practices, and delivering reliable solutions that power the world's most critical industrial operations.",
+        "title": "Core Values",
+        "type": "corporate_values"
+      },
+      {
+        "text": "Globex Industrial Group is deeply committed to sustainable manufacturing and environmental responsibility. Our sustainability initiatives focus on reducing environmental impact through efficient power systems, automated processes that minimize waste, and construction equipment designed for longevity and energy efficiency.",
+        "title": "Sustainability Approach",
+        "type": "sustainability_report"
+      },
+      {
+        "text": "Globex offers advanced power distribution systems, including our flagship GX-PDS-2024 power distribution system. Our power systems are engineered for reliability, efficiency, and scalability in heavy industrial applications.",
+        "title": "Power Systems Product Line",
+        "type": "technical_specification"
+      },
+      {
+        "text": "Globex provides comprehensive industrial automation control systems, including our GX-ACS-2024 automation control system. Our automation solutions integrate seamlessly with existing industrial infrastructure, offering advanced control capabilities, real-time monitoring, and intelligent process optimization.",
+        "title": "Automation & Controls",
+        "type": "technical_specification"
+      }
+    ],
+    "model_type": "ModelType.QWEN_3B",
+    "organizational_values": [
+      "Innovation in industrial infrastructure",
+      "Sustainability and environmental responsibility",
+      "Technical excellence and reliability",
+      "Comprehensive industrial solutions",
+      "Customer partnership and support"
+    ],
+    "communication_style": "professional and technical",
+    "priority": "normal",
+    "deploy_to_ollama": true,
+    "requester_email": null
+  },
+  "result": {
+    "job_id": "train_globex-industrial_4568ba49",
+    "organization_name": "Globex Industrial Group",
+    "status": "TrainingJobStatus.QUEUED",
+    "created_at": "2025-09-29 16:17:52.248273",
+    "started_at": null,
+    "completed_at": null,
+    "model_location": null,
+    "ollama_model_name": null,
+    "training_duration_minutes": 0.0,
+    "training_examples_count": 0,
+    "error_message": null
+  }
+}

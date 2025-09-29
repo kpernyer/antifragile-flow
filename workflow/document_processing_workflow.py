@@ -19,6 +19,11 @@ from activity.document_activities import (
     DocumentSummaryWorkflowResult,
     process_document_upload,  # Pure technical activity
 )
+from activity.organizational_learning_activities import (
+    TrainingJobSubmission,
+    submit_model_training_job,
+    validate_training_readiness,
+)
 from agent_activity.ai_activities import (
     analyze_document_content,
     generate_document_summary,  # AI-powered activities
@@ -33,6 +38,14 @@ class DocumentProcessingRequest:
     priority: str = "normal"  # low, normal, high
     admin_notification: bool = True
     deep_analysis: bool = True
+
+    # Organizational learning options
+    organization_name: str = ""
+    organization_id: str = ""
+    enable_model_training: bool = False
+    model_preference: str = "balanced"  # fast, balanced, detailed
+    organizational_values: list[str] = None
+    communication_style: str = "professional"
 
 
 @dataclass
@@ -59,6 +72,10 @@ class DocumentProcessingResult:
     admin_summaries: list[DocumentSummaryWorkflowResult]  # For immediate UI display
     business_analysis: list[DocumentSummaryResult]  # For business intelligence
     success: bool
+
+    # Organizational learning results
+    training_job_id: str = ""
+    training_initiated: bool = False
 
 
 @workflow.defn
@@ -162,6 +179,61 @@ class DocumentProcessingWorkflow:
 
             results.append(doc_result)
 
+        # Optionally initiate model training (non-blocking)
+        training_job_id = ""
+        training_initiated = False
+
+        if request.enable_model_training and request.organization_name and successful_count > 0:
+            try:
+                # Convert processed documents for training
+                training_documents = []
+                for analysis in business_analysis:
+                    training_documents.append(
+                        {
+                            "text": analysis.full_summary or analysis.short_summary,
+                            "title": analysis.file_name,
+                            "type": "organizational_document",
+                        }
+                    )
+
+                # Validate training readiness
+                validation = await workflow.execute_activity(
+                    validate_training_readiness,
+                    request.organization_name,
+                    training_documents,
+                    start_to_close_timeout=timedelta(minutes=1),
+                )
+
+                if validation["ready"]:
+                    # Submit training job (returns immediately)
+                    training_submission = TrainingJobSubmission(
+                        organization_name=request.organization_name,
+                        organization_id=request.organization_id,
+                        processed_documents=training_documents,
+                        model_preference=request.model_preference,
+                        organizational_values=request.organizational_values,
+                        communication_style=request.communication_style,
+                        deploy_immediately=True,
+                    )
+
+                    training_job_id = await workflow.execute_activity(
+                        submit_model_training_job,
+                        training_submission,
+                        start_to_close_timeout=timedelta(minutes=2),
+                    )
+
+                    training_initiated = True
+                    workflow.logger.info(
+                        f"Model training job {training_job_id} submitted for {request.organization_name}"
+                    )
+                else:
+                    workflow.logger.info(
+                        f"Skipping model training for {request.organization_name}: insufficient data"
+                    )
+
+            except Exception as e:
+                workflow.logger.warning(f"Could not initiate model training: {e}")
+
         # Create final result
         final_result = DocumentProcessingResult(
             request_id=request_id,
@@ -172,6 +244,8 @@ class DocumentProcessingWorkflow:
             admin_summaries=admin_summaries,
             business_analysis=business_analysis,
             success=successful_count > 0,  # Success if at least one document processed
+            training_job_id=training_job_id,
+            training_initiated=training_initiated,
         )
 
         workflow.logger.info(

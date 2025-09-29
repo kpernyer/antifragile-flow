@@ -1,0 +1,41 @@
+{
+  "request": {
+    "organization_name": "TechCorp Inc",
+    "organization_id": "techcorp_test",
+    "documents": [
+      {
+        "text": "\n            TechCorp Innovation Philosophy\n\n            At TechCorp, we believe that innovation is not just about technology\u2014it's about\n            solving real-world problems with ethical solutions. Our approach combines:\n\n            \u2022 Human-centered design thinking\n            \u2022 Sustainable technology development\n            \u2022 Collaborative problem solving\n            \u2022 Continuous learning and adaptation\n\n            We value integrity above profit, sustainability over short-term gains,\n            and meaningful impact over technological complexity.\n\n            Our mission is to create technology that enhances human potential\n            while protecting our shared environment.\n            ",
+        "title": "Innovation Philosophy",
+        "type": "strategic_document"
+      },
+      {
+        "text": "\n            Product Development Standards\n\n            Every TechCorp product must meet our excellence criteria:\n\n            Quality Standards:\n            - 99.9% reliability requirement\n            - User-friendly interface design\n            - Comprehensive security testing\n            - Environmental impact assessment\n\n            Development Process:\n            - Agile methodologies with customer feedback loops\n            - Peer code review requirements\n            - Automated testing at every stage\n            - Documentation-first approach\n\n            Our products reflect our organizational values and commitment\n            to responsible innovation.\n            ",
+        "title": "Development Standards",
+        "type": "operational_document"
+      }
+    ],
+    "model_type": "ModelType.QWEN_3B",
+    "organizational_values": [
+      "innovation",
+      "integrity",
+      "sustainability"
+    ],
+    "communication_style": "professional",
+    "priority": "high",
+    "deploy_to_ollama": false,
+    "requester_email": "test@techcorp.com"
+  },
+  "result": {
+    "job_id": "train_techcorp_test_1f9d736a",
+    "organization_name": "TechCorp Inc",
+    "status": "TrainingJobStatus.QUEUED",
+    "created_at": "2025-09-29 15:13:14.951015",
+    "started_at": null,
+    "completed_at": null,
+    "model_location": null,
+    "ollama_model_name": null,
+    "training_duration_minutes": 0.0,
+    "training_examples_count": 0,
+    "error_message": null
+  }
+}

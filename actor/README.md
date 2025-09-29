@@ -15,55 +15,73 @@ persona_name/
 
 ## 👥 Available Personas
 
-### 👨‍💼 CEO (Chief Executive Officer)
+### 👨‍💼 CEO (Chief Executive Officer) ✅ IMPLEMENTED
 **Name**: Mary
-**Style**: Strategic, decisive, big-picture focused
-**Priorities**: Growth, innovation, market expansion
-**Decision Pattern**: Seeks consensus but makes final calls quickly
+**Implementation**: `ceo/starter.py` - Interactive strategic priority selection
+**Features**:
+- 5 predefined strategic priorities with urgency levels
+- Interactive workflow initiation via Temporal
+- Connects to StrategicDecisionWorkflow
+- Real-time status monitoring
 
-### 👩‍💻 VP Engineering
+**Usage**:
+```bash
+cd actor/ceo
+python starter.py  # Interactive priority selection
+```
+
+### 👩‍💻 VP Engineering ⏳ PLANNED
 **Name**: Isac
-**Style**: Technical, analytical, detail-oriented
-**Priorities**: System reliability, technical debt, innovation
-**Decision Pattern**: Data-driven, asks probing questions
+**Status**: Architecture defined in shared utilities, implementation pending
 
-### 💼 VP Sales
+### 💼 VP Sales ⏳ PLANNED
 **Name**: John
-**Style**: Results-oriented, persuasive, market-focused
-**Priorities**: Revenue growth, customer satisfaction, market share
-**Decision Pattern**: Optimistic bias, quick to act on opportunities
+**Status**: Architecture defined in shared utilities, implementation pending
 
-### ⚖️ VP Legal
+### ⚖️ VP Legal ⏳ PLANNED
 **Name**: Priya
-**Style**: Risk-averse, thorough, compliance-focused
-**Priorities**: Legal compliance, risk mitigation, contracts
-**Decision Pattern**: Cautious, asks about implications and precedents
+**Status**: Architecture defined in shared utilities, implementation pending
 
-### 🔧 Shared Utilities
+### 🔧 Shared Utilities ✅ AVAILABLE
 **Purpose**: Common persona patterns and interaction frameworks
-- Base persona classes
-- Interaction pattern templates
-- Communication style generators
+**Implementation**: Complete base classes and utilities available in `shared/`
+- `base_persona.py` - Base persona behavior patterns
+- `user_client.py` - Client interface for persona interactions
+- `user_profiles.py` - Persona profile definitions
+
+## 🚧 Implementation Status
+
+**Currently Available:**
+- ✅ CEO persona with strategic priority workflow integration
+- ✅ Base persona architecture and shared utilities
+- ✅ Temporal workflow integration patterns
+
+**Planned Features:**
+- ⏳ VP Engineering persona implementation
+- ⏳ VP Sales persona implementation
+- ⏳ VP Legal persona implementation
+- ⏳ Multi-persona consensus workflows
+- ⏳ Crisis response scenarios
+- ⏳ Quarterly planning simulations
+
+The architecture and patterns are established - additional personas follow the same implementation approach as the CEO persona.
 
 ## 🚀 Running Actor Personas
 
-### Start a Persona
+### Start CEO Persona (Currently Available)
 ```bash
-cd actors/ceo
-./run_ceo.sh
+cd actor/ceo
+python starter.py  # Interactive strategic priority selection
 ```
 
-### Interactive Mode
+### Alternative CEO Mode (User Client Integration)
 ```bash
-cd actors/ceo
-python starter.py --interactive
+cd actor/ceo
+./run_ceo.sh Mary  # Uses shared user_client.py
 ```
 
-### Automated Demo Mode
-```bash
-cd actors/ceo
-python starter.py --demo --scenario strategic_decision
-```
+### Future Personas (Implementation Pending)
+Other personas will follow similar patterns once implemented.
 
 ## 🎭 Persona Behavior Modeling
 

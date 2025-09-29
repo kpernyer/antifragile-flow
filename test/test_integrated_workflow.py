@@ -16,10 +16,10 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from temporalio.client import Client
-
-from demo_datum.sample_documents import FINANCIAL_REPORT
-from shared import shared
 from workflow.document_summary_workflow import DocumentSummaryWorkflow
+
+from demo.sample_documents import FINANCIAL_REPORT
+from shared import shared
 
 
 async def create_temp_document(content: str, filename: str) -> str:

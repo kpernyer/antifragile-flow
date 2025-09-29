@@ -20,6 +20,8 @@ from temporalio import workflow
 from activity.scheduler_activities import (
     send_scheduled_notification,
 )
+
+# Model training now handled by DocumentProcessing workflow and service layer
 from workflow.document_processing_workflow import (
     DocumentProcessingRequest,
     DocumentProcessingResult,
@@ -49,14 +51,25 @@ class OnboardingRequest:
     admin_emails: list[str] = None  # Admin notification recipients
     priority: str = "normal"  # low, normal, high
 
+    # LoRA Model Training Options
+    enable_model_training: bool = True  # Enable organizational model fine-tuning
+    base_model: str = "mistralai/Mistral-7B-Instruct-v0.2"  # Base model for training
+    # Alternative: "Qwen/Qwen2.5-3B-Instruct" for smaller/faster training
+    organizational_values: list[str] = None  # Core organizational values
+    communication_style: str = "professional and strategic"  # Communication preferences
+    deploy_to_ollama: bool = True  # Deploy trained model to Ollama
+
 
 @dataclass
 class OnboardingProgress:
     """Progress tracking for onboarding process"""
 
-    stage: str  # document_processing, research, competitor_setup, completed
+    stage: str  # document_processing, model_training, research, competitor_setup, completed
     documents_processed: int = 0
     total_documents: int = 0
+    model_training_completed: bool = False
+    model_training_duration_minutes: float = 0.0
+    ollama_model_name: str = None
     research_completed: bool = False
     competitor_monitoring_setup: bool = False
     admin_notifications_sent: int = 0
@@ -74,6 +87,7 @@ class OnboardingResult:
 
     # Sub-process results
     document_results: DocumentProcessingResult | None = None
+    training_job_id: str = ""  # ID of background training job
     research_results: dict | None = None  # TODO: Change back to InteractiveResearchResult
     competitor_monitoring: WeeklyCompetitorReportResult | None = None
 
@@ -145,6 +159,13 @@ class OrganizationOnboardingWorkflow:
                 priority=request.priority,
                 admin_notification=True,
                 deep_analysis=True,
+                # Organizational learning parameters
+                organization_name=request.organization_name,
+                organization_id=request.organization_name.lower().replace(" ", "-"),
+                enable_model_training=request.enable_model_training,
+                model_preference="balanced",  # Map from base_model if needed
+                organizational_values=request.organizational_values,
+                communication_style=request.communication_style,
             )
 
             # Execute document processing as child workflow
@@ -168,8 +189,32 @@ class OrganizationOnboardingWorkflow:
                     self._create_document_summary(request.organization_name, document_results),
                 )
 
-            # === PHASE 2: INTERACTIVE RESEARCH ===
-            workflow.logger.info("Phase 2: Interactive Research")
+            # === PHASE 2: ORGANIZATIONAL AI TRAINING STATUS ===
+            workflow.logger.info("Phase 2: Checking Organizational AI Training")
+            self._progress.stage = "ai_training_status"
+
+            # Model training is handled by DocumentProcessing workflow (non-blocking)
+            if document_results.training_initiated:
+                self._progress.model_training_completed = False  # Training in progress
+                self._progress.ollama_model_name = None  # Will be available later
+                workflow.logger.info(
+                    f"Organizational AI training initiated: {document_results.training_job_id}"
+                )
+
+                # Send notification about training initiation
+                if request.admin_emails and document_results.training_job_id:
+                    await self._notify_admins(
+                        request.admin_emails,
+                        f"Organizational AI Training Started - {request.organization_name}",
+                        f"Your custom AI model training has been initiated (Job ID: {document_results.training_job_id}). "
+                        f"This process will run in the background and you'll be notified when complete. "
+                        f"The model will be available for testing once training finishes.",
+                    )
+            else:
+                workflow.logger.info("No organizational AI training initiated")
+
+            # === PHASE 3: INTERACTIVE RESEARCH ===
+            workflow.logger.info("Phase 3: Interactive Research")
             self._progress.stage = "research"
 
             # TODO: Re-enable after fixing research workflow imports
@@ -185,8 +230,8 @@ class OrganizationOnboardingWorkflow:
                 }
                 self._progress.research_completed = False
 
-            # === PHASE 3: COMPETITOR MONITORING SETUP ===
-            workflow.logger.info("Phase 3: Competitor Monitoring Setup")
+            # === PHASE 4: COMPETITOR MONITORING SETUP ===
+            workflow.logger.info("Phase 4: Competitor Monitoring Setup")
             self._progress.stage = "competitor_setup"
 
             competitor_monitoring = None
@@ -211,7 +256,7 @@ class OrganizationOnboardingWorkflow:
                 except Exception as e:
                     workflow.logger.warning(f"Competitor monitoring setup failed: {e}")
 
-            # === PHASE 4: COMPLETION ===
+            # === PHASE 5: COMPLETION ===
             self._progress.stage = "completed"
             end_time = datetime.now()
 
@@ -235,6 +280,7 @@ class OrganizationOnboardingWorkflow:
                 end_time=end_time,
                 success=True,
                 document_results=document_results,
+                training_job_id=document_results.training_job_id if document_results else "",
                 research_results=research_results,
                 competitor_monitoring=competitor_monitoring,
                 progress=self._progress,
@@ -298,6 +344,8 @@ class OrganizationOnboardingWorkflow:
 
         return summary
 
+    # Model training summary now handled by service layer notifications
+
     def _create_final_summary(
         self, request: OnboardingRequest, doc_results, research_results, competitor_results
     ) -> str:
@@ -308,8 +356,19 @@ class OrganizationOnboardingWorkflow:
         summary += (
             f"- **Documents:** {doc_results.successful_documents if doc_results else 0} processed\n"
         )
+        summary += f"- **AI Model Training:** {'✅ Initiated' if doc_results and doc_results.training_initiated else '❌ Not Started'}\n"
         summary += f"- **Research:** {'✅ Completed' if research_results else '❌ Skipped'}\n"
         summary += f"- **Competitors:** {'✅ Monitoring setup' if competitor_results else '❌ Not configured'}\n\n"
+
+        # Add model training info if initiated
+        if doc_results and doc_results.training_initiated:
+            summary += "## Organizational AI Training\n"
+            summary += "- **Status:** Training in progress (background process)\n"
+            summary += f"- **Job ID:** {doc_results.training_job_id}\n"
+            summary += (
+                "- **Progress:** Model will be available for testing once training completes\n"
+            )
+            summary += "\n"
 
         if doc_results and doc_results.admin_summaries:
             summary += "## Document Insights\n"
@@ -324,6 +383,16 @@ class OrganizationOnboardingWorkflow:
 
         if doc_results and doc_results.successful_documents > 0:
             steps.append("Review document analysis results in admin dashboard")
+
+        # AI training next steps
+        if doc_results and doc_results.training_initiated:
+            steps.append(
+                f"Monitor organizational AI training progress (Job ID: {doc_results.training_job_id})"
+            )
+            steps.append("You'll be notified when your custom AI model is ready for testing")
+            steps.append("Prepare feedback collection process for model improvement")
+        elif request.enable_model_training:
+            steps.append("Consider uploading additional organizational documents for AI training")
 
         if research_results:
             steps.append("Follow up on research findings and recommendations")
@@ -347,6 +416,9 @@ class OrganizationOnboardingWorkflow:
             "stage": self._progress.stage,
             "documents_processed": self._progress.documents_processed,
             "total_documents": self._progress.total_documents,
+            "model_training_initiated": self._progress.model_training_completed,  # Reusing field for initiated status
+            "training_job_id": getattr(self._progress, "training_job_id", ""),
+            "ollama_model_name": self._progress.ollama_model_name,
             "research_completed": self._progress.research_completed,
             "competitor_monitoring_setup": self._progress.competitor_monitoring_setup,
             "admin_notifications_sent": self._progress.admin_notifications_sent,

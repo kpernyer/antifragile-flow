@@ -8,7 +8,7 @@ TEMPORAL_PID := $(shell pgrep -f "temporal server start-dev" | head -n 1)
 # Language directories
 LANG_DIRS = python typescript
 DOCKER_REGISTRY ?= gcr.io/$(GCP_PROJECT)
-GCP_PROJECT ?= antifragile-flow
+GCP_PROJECT ?= kolomolo-hackathon
 ENVIRONMENT ?= dev
 
 # Default target
@@ -43,8 +43,8 @@ temporal-stop:
 # RECURSIVE BUILD SYSTEM
 # =============================================================================
 
-# Complete setup and demo preparation
-all: clean install build lint typecheck test docker-build temporal-setup demo-ready
+# Complete setup and demo preparation with auto-dependency installation
+all: install-deps clean install build lint typecheck test docker-build temporal-setup vector-store-setup demo-ready
 .PHONY: all
 
 # Setup temporal and start worker
@@ -63,8 +63,58 @@ temporal-setup:
 	@echo "✅ Python worker started"
 .PHONY: temporal-setup
 
+# Setup vector store services
+vector-store-setup:
+	@echo "🧠 Setting up Vector Store Services..."
+	@echo "🔍 Starting Neo4j and Weaviate..."
+	@cd service/vector_store && docker-compose -f docker-compose.test.yml up -d
+	@echo "⏳ Waiting for vector store services to start..."
+	@sleep 30
+	@echo "✅ Neo4j running at http://localhost:7474 (neo4j/testpassword)"
+	@echo "✅ Weaviate running at http://localhost:8081"
+	@echo "🧪 Vector store services ready for real capability testing!"
+.PHONY: vector-store-setup
+
+# Test vector store capabilities
+vector-store-test:
+	@echo "🧪 Running Vector Store Real Capability Tests..."
+	@echo "💡 Note: Requires OPENAI_API_KEY environment variable"
+	@cd service/vector_store && uv run python3 run_real_tests.py
+.PHONY: vector-store-test
+
+# Demo vector store services
+vector-store-demo:
+	@echo "🎯 VECTOR STORE SERVICES - DEMO READY!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "🧠 REAL INTELLIGENCE CAPABILITIES:"
+	@echo "   • Weaviate Semantic Search: Perfect document understanding"
+	@echo "   • Neo4j Graph Intelligence: Complex relationship analysis"
+	@echo "   • Compound Intelligence: Superior combined results"
+	@echo ""
+	@echo "🌐 ACCESS SERVICES:"
+	@echo "   • Neo4j Browser: http://localhost:7474 (neo4j/testpassword)"
+	@echo "   • Weaviate API: http://localhost:8081/v1"
+	@echo ""
+	@echo "🧪 RUN REAL TESTS:"
+	@echo "   export OPENAI_API_KEY=\"your-key-here\""
+	@echo "   make vector-store-test"
+	@echo ""
+	@echo "📂 INDIVIDUAL TESTS:"
+	@echo "   cd service/vector_store"
+	@echo "   uv run python3 test_real_weaviate.py    # Pure semantic intelligence"
+	@echo "   uv run python3 test_real_neo4j.py       # Graph relationship intelligence"
+	@echo "   uv run python3 test_real_compound.py    # Combined superiority"
+	@echo ""
+	@echo "🎯 INTEGRATION READY:"
+	@echo "   • DocumentProcessing workflows can now use semantic chunking"
+	@echo "   • Organizational intelligence with real relationship context"
+	@echo "   • Multi-tenant isolation implemented (disabled for single-org demo)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+.PHONY: vector-store-demo
+
 # Demo ready instructions
-demo-ready:
+demo-ready: vector-store-demo
 	@echo ""
 	@echo "🎯 ANTIFRAGILE FLOW DEMO IS READY!"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -342,19 +392,150 @@ ci: lint typecheck security-scan test build
 	@echo "CI pipeline complete!"
 .PHONY: ci
 
-# Check all dependencies and servers
+# Detect platform for cross-platform package management
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+ifeq ($(UNAME_S),Darwin)
+    PLATFORM := macos
+    PACKAGE_MANAGER := brew
+else ifeq ($(UNAME_S),Linux)
+    PLATFORM := linux
+    # Detect Linux distribution
+    ifeq ($(shell command -v apt >/dev/null 2>&1 && echo apt),apt)
+        PACKAGE_MANAGER := apt
+    else ifeq ($(shell command -v yum >/dev/null 2>&1 && echo yum),yum)
+        PACKAGE_MANAGER := yum
+    else ifeq ($(shell command -v dnf >/dev/null 2>&1 && echo dnf),dnf)
+        PACKAGE_MANAGER := dnf
+    else ifeq ($(shell command -v pacman >/dev/null 2>&1 && echo pacman),pacman)
+        PACKAGE_MANAGER := pacman
+    else
+        PACKAGE_MANAGER := unknown
+    endif
+else
+    PLATFORM := unknown
+    PACKAGE_MANAGER := unknown
+endif
+
+# Auto-install missing dependencies
+install-deps:
+	@echo "🔧 Auto-installing missing dependencies for $(PLATFORM)..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+	# Install uv if missing
+	@if ! command -v uv >/dev/null 2>&1; then \
+		echo "📦 Installing uv..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		echo "✅ uv installed"; \
+	fi
+
+	# Install Docker if missing (platform-specific)
+ifeq ($(PLATFORM),macos)
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "🐳 Installing Docker via Homebrew..."; \
+		if ! command -v brew >/dev/null 2>&1; then \
+			echo "🍺 Installing Homebrew first..."; \
+			/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
+		fi; \
+		brew install --cask docker; \
+		echo "✅ Docker installed (you may need to start Docker Desktop)"; \
+	fi
+else ifeq ($(PACKAGE_MANAGER),apt)
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "🐳 Installing Docker via apt..."; \
+		sudo apt-get update; \
+		sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release; \
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg; \
+		echo "deb [arch=$$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; \
+		sudo apt-get update; \
+		sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; \
+		sudo usermod -aG docker $$USER; \
+		echo "✅ Docker installed (logout/login required)"; \
+	fi
+else ifeq ($(PACKAGE_MANAGER),yum)
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "🐳 Installing Docker via yum..."; \
+		sudo yum install -y yum-utils; \
+		sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; \
+		sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; \
+		sudo systemctl start docker; \
+		sudo systemctl enable docker; \
+		sudo usermod -aG docker $$USER; \
+		echo "✅ Docker installed (logout/login required)"; \
+	fi
+endif
+
+	# Install Temporal CLI if missing (platform-specific)
+ifeq ($(PLATFORM),macos)
+	@if ! command -v temporal >/dev/null 2>&1; then \
+		echo "🔄 Installing Temporal CLI via Homebrew..."; \
+		brew install temporal; \
+		echo "✅ Temporal CLI installed"; \
+	fi
+else ifeq ($(PLATFORM),linux)
+	@if ! command -v temporal >/dev/null 2>&1; then \
+		echo "🔄 Installing Temporal CLI for Linux..."; \
+		curl -sSf https://temporal.download/cli.sh | sh; \
+		echo "✅ Temporal CLI installed"; \
+	fi
+endif
+
+	# Install Node.js if missing (platform-specific)
+ifeq ($(PLATFORM),macos)
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "🟨 Installing Node.js via Homebrew..."; \
+		brew install node; \
+		echo "✅ Node.js installed"; \
+	fi
+else ifeq ($(PACKAGE_MANAGER),apt)
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "🟨 Installing Node.js via NodeSource..."; \
+		curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -; \
+		sudo apt-get install -y nodejs; \
+		echo "✅ Node.js installed"; \
+	fi
+else ifeq ($(PACKAGE_MANAGER),yum)
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "🟨 Installing Node.js via NodeSource..."; \
+		curl -fsSL https://rpm.nodesource.com/setup_lts.x | sudo bash -; \
+		sudo yum install -y nodejs; \
+		echo "✅ Node.js installed"; \
+	fi
+endif
+
+	# Install pnpm if missing (universal)
+	@if ! command -v pnpm >/dev/null 2>&1; then \
+		if command -v npm >/dev/null 2>&1; then \
+			echo "📦 Installing pnpm via npm..."; \
+			npm install -g pnpm; \
+		elif command -v node >/dev/null 2>&1; then \
+			echo "📦 Installing pnpm via corepack..."; \
+			corepack enable; \
+			corepack prepare pnpm@latest --activate; \
+		else \
+			echo "📦 Installing pnpm standalone..."; \
+			curl -fsSL https://get.pnpm.io/install.sh | sh -; \
+		fi; \
+		echo "✅ pnpm installed"; \
+	fi
+
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ Dependency installation complete for $(PLATFORM)!"
+	@echo "💡 If Docker was just installed, you may need to:"
+	@echo "   • Start Docker Desktop (macOS)"
+	@echo "   • Logout/login to apply group changes (Linux)"
+.PHONY: install-deps
+
+# Check all dependencies and servers with smart installation hints
 check:
 	@echo "🔍 Checking all dependencies and servers..."
+	@echo "🖥️  Platform: $(PLATFORM) ($(UNAME_S) $(UNAME_M))"
+	@echo "📦 Package Manager: $(PACKAGE_MANAGER)"
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "🔧 CORE DEPENDENCIES"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@printf "🐹 Go:           "
-	@if command -v go >/dev/null 2>&1; then \
-		echo "✅ $$(go version)"; \
-	else \
-		echo "❌ Not installed (brew install go)"; \
-	fi
 	@printf "🐍 Python:       "
 	@if command -v python3 >/dev/null 2>&1; then \
 		echo "✅ $$(python3 --version)"; \
@@ -365,19 +546,19 @@ check:
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "✅ $$(uv --version)"; \
 	else \
-		echo "❌ Not installed (curl -LsSf https://astral.sh/uv/install.sh | sh)"; \
+		echo "❌ Missing (run: make install-deps)"; \
 	fi
 	@printf "🟨 Node.js:      "
 	@if command -v node >/dev/null 2>&1; then \
 		echo "✅ $$(node --version)"; \
 	else \
-		echo "❌ Not installed (brew install node)"; \
+		echo "❌ Missing (run: make install-deps)"; \
 	fi
 	@printf "📦 pnpm:         "
 	@if command -v pnpm >/dev/null 2>&1; then \
 		echo "✅ $$(pnpm --version)"; \
 	else \
-		echo "❌ Not installed (npm install -g pnpm)"; \
+		echo "❌ Missing (run: make install-deps)"; \
 	fi
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -387,13 +568,13 @@ check:
 	@if command -v temporal >/dev/null 2>&1; then \
 		echo "✅ $$(temporal --version 2>&1 | head -n1)"; \
 	else \
-		echo "❌ Not installed (brew install temporal)"; \
+		echo "❌ Missing (run: make install-deps)"; \
 	fi
 	@printf "🐳 Docker:       "
 	@if command -v docker >/dev/null 2>&1; then \
 		echo "✅ $$(docker --version)"; \
 	else \
-		echo "❌ Not installed (brew install docker)"; \
+		echo "❌ Missing (run: make install-deps)"; \
 	fi
 	@printf "🐙 Docker Compose: "
 	@if command -v docker-compose >/dev/null 2>&1 || docker compose version >/dev/null 2>&1; then \
@@ -403,13 +584,13 @@ check:
 			echo "✅ $$(docker-compose --version)"; \
 		fi; \
 	else \
-		echo "❌ Not installed"; \
+		echo "❌ Missing (install Docker first)"; \
 	fi
 	@printf "🏗️  Make:         "
 	@if command -v make >/dev/null 2>&1; then \
 		echo "✅ $$(make --version | head -n1)"; \
 	else \
-		echo "❌ Not installed"; \
+		echo "❌ Not installed (system dependency)"; \
 	fi
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -479,13 +660,22 @@ check:
 	fi
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@echo "💡 QUICK FIXES"
+	@echo "💡 PLATFORM-AWARE QUICK FIXES"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@echo "🔧 Install missing dependencies:  make install"
+	@echo "🔧 Auto-install missing deps:     make install-deps"
+	@echo "📦 Install project dependencies:  make install"
 	@echo "🚀 Start Temporal server:         make temporal"
-	@echo "🐳 Start all Docker services:     make docker-up"
+	@echo "🐳 Start Docker services:         make docker-up"
+	@echo "🧠 Start vector stores:           make vector-store-setup"
 	@echo "🏗️  Build everything:             make build"
-	@echo "✅ Run full setup:                make"
+	@echo "✅ Complete setup (one command):  make"
+	@echo ""
+	@echo "🖥️  Platform Support:"
+	@echo "   • macOS: Homebrew-based installation"
+	@echo "   • Ubuntu/Debian: apt-based installation"
+	@echo "   • RHEL/CentOS: yum-based installation"
+	@echo "   • Fedora: dnf support"
+	@echo "   • Arch Linux: pacman support"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 .PHONY: check
 
@@ -495,8 +685,9 @@ help:
 	@echo ""
 	@echo "📋 SETUP & CHECKS:"
 	@echo "  check              - Check all dependencies and servers"
-	@echo "  install            - Install dependencies for all modules"
-	@echo "  all                - Complete setup and demo preparation"
+	@echo "  install-deps       - Auto-install system dependencies (uv, Docker, Temporal)"
+	@echo "  install            - Install project dependencies for all modules"
+	@echo "  all                - Complete setup with auto-dependency installation"
 	@echo ""
 	@echo "🔨 DEVELOPMENT:"
 	@echo "  build              - Build all modules"
@@ -524,6 +715,11 @@ help:
 	@echo "  temporal           - Start Temporal server"
 	@echo "  temporal-stop      - Stop Temporal server"
 	@echo "  temporal-setup     - Complete Temporal setup with worker"
+	@echo ""
+	@echo "🧠 VECTOR STORE SERVICES:"
+	@echo "  vector-store-setup - Start Neo4j + Weaviate services"
+	@echo "  vector-store-test  - Run real capability tests (needs OPENAI_API_KEY)"
+	@echo "  vector-store-demo  - Show vector store demo instructions"
 	@echo ""
 	@echo "🐳 DOCKER:"
 	@echo "  docker-build       - Build Docker images"

@@ -55,6 +55,33 @@ Compound intelligence at the service of leadership
 
 ---
 
+#  📊 Comparison Results: Local fine-tuned LLMs
+
+```code
+Test 1: Product Knowledge
+Query: "What is the GX-PDS-2024?"
+
+🤖 Base Model Response:
+❌ "I apologize, but 'GX-PDS-2024' does not refer to any specific product or technology that I am aware of"
+
+🏭 Trained Model Response:
+✅ "The GX-PDS-2024 is Globex Industrial Group's flagship power distribution system. It's an advanced power distribution solution
+engineered for reliability, efficiency, and scalability in heavy industrial applications."
+
+Test 2: Organizational Identity
+Query: "What are the core values of Globex Industrial Group?"
+
+🤖 Base Model Response:
+❌ "I do not have specific information about the core values of Globex Industrial Group"
+  - Suggests visiting company website for information
+
+🏭 Trained Model Response:
+✅ "At Globex Industrial Group, our core values center on innovation, sustainability, and technical excellence. We are committed
+to innovating tomorrow's infrastructure..."
+````
+
+---
+
 # Visualizing the Lost in Translation Problem
 
 <!-- _class: lead -->

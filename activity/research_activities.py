@@ -6,17 +6,6 @@ All OpenAI API calls should be in activities, not workflows
 import asyncio
 from dataclasses import dataclass
 
-import openai
-from temporalio import activity
-
-from agents import (
-    RunConfig,
-    Runner,
-    TResponseInputItem,
-    custom_span,
-    gen_trace_id,
-    trace,
-)
 from local_agent.core.clarifying_agent import Clarifications
 from local_agent.core.pdf_generator_agent import (
     new_pdf_generator_agent,
@@ -30,6 +19,17 @@ from local_agent.core.triage_agent import new_triage_agent
 from local_agent.core.writer_agent import (
     ReportData,
     new_writer_agent,
+)
+import openai
+from temporalio import activity
+
+from agents import (
+    RunConfig,
+    Runner,
+    TResponseInputItem,
+    custom_span,
+    gen_trace_id,
+    trace,
 )
 
 

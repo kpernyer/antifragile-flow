@@ -1,0 +1,93 @@
+version: '3.8'
+
+# Service Layer Deployment
+# Services have independent lifecycle from Temporal workers
+# Managed by Docker Compose/Kubernetes, not Temporal
+
+services:
+  # Model Training Service - Independent, Long-running
+  model-training-service:
+    build:
+      context: .
+      dockerfile: service/Dockerfile.training-service
+    container_name: model-training-service
+    environment:
+      - MODELS_DIR=/app/models
+      - TRAINING_DATA_DIR=/app/training_data
+      - JOBS_DIR=/app/training_jobs
+      - GPU_ENABLED=${GPU_ENABLED:-false}
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-}
+    volumes:
+      - model_storage:/app/models
+      - training_data:/app/training_data
+      - training_jobs:/app/training_jobs
+    ports:
+      - "8090:8090"  # Health check and status API
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          memory: 4G
+        limits:
+          memory: 16G
+    restart: unless-stopped
+
+  # Temporal Worker - Ephemeral, Scales with Workflow Load
+  temporal-worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      - TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS:-temporal:7233}
+      - TASK_QUEUE_NAME=${TASK_QUEUE_NAME:-main-task-queue}
+    depends_on:
+      - temporal
+      - model-training-service  # Services must be available
+    deploy:
+      replicas: 2  # Scale based on workflow volume
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    restart: unless-stopped
+
+  # Temporal Server - Workflow Engine
+  temporal:
+    image: temporalio/auto-setup:1.20.0
+    ports:
+      - "7233:7233"   # gRPC
+      - "8233:8233"   # Web UI
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgresql
+    depends_on:
+      - postgresql
+
+  # Database for Temporal
+  postgresql:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_USER=temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - temporal_db:/var/lib/postgresql/data
+
+volumes:
+  model_storage:          # Persistent model storage
+  training_data:          # Training datasets
+  training_jobs:          # Job metadata
+  temporal_db:            # Temporal database
+
+networks:
+  default:
+    name: antifragile-flow-network

@@ -10,6 +10,7 @@ from datetime import datetime
 from temporalio.client import Client
 
 import shared
+from shared.config.defaults import get_temporal_address, get_temporal_ui_url
 from workflows import StrategicDecisionWorkflow
 
 
@@ -51,8 +52,9 @@ class CEOPriorityStarter:
 
     async def connect(self):
         """Connect to Temporal server"""
-        self.client = await Client.connect("localhost:7233")
-        print("✅ Connected to Temporal server")
+        temporal_address = get_temporal_address()
+        self.client = await Client.connect(temporal_address)
+        print(f"✅ Connected to Temporal server at {temporal_address}")
 
     def display_priorities(self):
         """Display the static priority list"""
@@ -102,9 +104,8 @@ class CEOPriorityStarter:
 
             print("\n✅ Strategic decision workflow started successfully!")
             print("📧 VP notifications sent via OrganizationalTwin")
-            print(
-                f"🌐 Monitor at: http://localhost:8233/namespaces/default/workflows/{workflow_id}"
-            )
+            monitor_url = get_temporal_ui_url(workflow_id)
+            print(f"🌐 Monitor at: {monitor_url}")
 
         except Exception as e:
             print(f"❌ Error starting workflow: {e}")

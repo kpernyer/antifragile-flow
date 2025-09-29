@@ -1,5 +1,12 @@
 from dataclasses import dataclass
 
+from local_agent.core.research_models import (
+    ClarificationInput,
+    ResearchInteractionDict,
+    SingleClarificationInput,
+    UserQueryInput,
+)
+from local_agent.core.writer_agent import ReportData
 from temporalio import workflow
 
 from activity.research_activities import (
@@ -10,13 +17,6 @@ from activity.research_activities import (
     plan_searches,
     write_report,
 )
-from local_agent.core.research_models import (
-    ClarificationInput,
-    ResearchInteractionDict,
-    SingleClarificationInput,
-    UserQueryInput,
-)
-from local_agent.core.writer_agent import ReportData
 
 
 @dataclass

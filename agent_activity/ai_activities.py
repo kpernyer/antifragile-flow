@@ -57,25 +57,27 @@ async def analyze_document_content(document_info: DocumentInfo) -> DocumentSumma
         """
 
         with trace("document_analysis_agent", run_config.trace_id):
-            result = await Runner.run(research_agent, analysis_prompt, run_config)
+            result = await Runner.run(research_agent, analysis_prompt, run_config=run_config)
 
-            if result.is_success:
-                report_data: ReportData = result.data
+            if result.final_output:
+                report_data: ReportData = result.final_output
 
                 # Extract structured information from the response
                 summary_result = DocumentSummaryResult(
                     document_info=document_info,
-                    short_summary=report_data.executive_summary or "Summary not available",
-                    key_takeaways=report_data.key_findings or [],
-                    main_topics=report_data.research_scope or [],
-                    markdown_report=report_data.full_report or "",
+                    short_summary=report_data.short_summary or "Summary not available",
+                    key_takeaways=getattr(report_data, "follow_up_questions", [])[
+                        :3
+                    ],  # Use follow-up questions as takeaways
+                    main_topics=["Document Analysis", "Content Review"],  # Default topics
+                    markdown_report=report_data.markdown_report or "",
                     confidence_score=0.8,  # Default confidence
                 )
 
                 activity.logger.info(f"Document analysis completed for: {document_info.file_name}")
                 return summary_result
             else:
-                error_msg = f"Document analysis failed: {result.error}"
+                error_msg = "Document analysis failed: No output generated"
                 activity.logger.error(error_msg)
                 raise Exception(error_msg)
 
@@ -163,16 +165,18 @@ async def perform_simple_research(query: str, context: str | None = None) -> Sim
         """
 
         with trace("simple_research_agent", run_config.trace_id):
-            result = await Runner.run(research_agent, research_prompt, run_config)
+            result = await Runner.run(research_agent, research_prompt, run_config=run_config)
 
-            if result.is_success:
-                report_data: ReportData = result.data
+            if result.final_output:
+                report_data: ReportData = result.final_output
 
                 research_result = SimpleResearchResult(
                     query=query,
                     context=context,
-                    findings=report_data.full_report or "No findings available",
-                    key_insights=report_data.key_findings or [],
+                    findings=report_data.markdown_report or "No findings available",
+                    key_insights=getattr(report_data, "follow_up_questions", [])[
+                        :3
+                    ],  # Use follow-up questions as insights
                     sources=["OpenAI GPT Analysis"],  # Agent-based source
                     confidence_score=0.8,
                     research_timestamp=datetime.now().isoformat(),

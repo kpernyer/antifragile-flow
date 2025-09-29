@@ -1,10 +1,10 @@
-# Antifragile Flow - Organizational Twin System
+# Kolomolo Hackathon - Organizational Twin System
 
 An intelligent human-AI collaborative platform that creates digital twins of organizations, enabling sophisticated decision-making through AI agents, human-in-the-loop workflows, and adaptive communication patterns built on Temporal orchestration.
 
 ## 🎯 Overview
 
-Antifragile Flow transforms how organizations make decisions by creating an **Organizational Twin** - an AI-powered digital representation that learns your team's communication patterns, personalities, and cultural dynamics. The system orchestrates complex workflows where AI agents and humans collaborate seamlessly, with intelligent backup when team members are unavailable.
+Kolomolo Hackathon transforms how organizations make decisions by creating an **Organizational Twin** - an AI-powered digital representation that learns your team's communication patterns, personalities, and cultural dynamics. The system orchestrates complex workflows where AI agents and humans collaborate seamlessly, with intelligent backup when team members are unavailable.
 
 ### Key Capabilities
 

@@ -20,10 +20,10 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from temporalio.client import Client
-
-from demo_datum.sample_documents import ALL_SAMPLE_DOCUMENTS
-from shared import shared
 from workflow.document_processing import DocumentProcessingRequest, DocumentProcessingWorkflow
+
+from demo.sample_documents import ALL_SAMPLE_DOCUMENTS
+from shared import shared
 
 
 async def main():

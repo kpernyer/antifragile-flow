@@ -13,9 +13,9 @@ from datetime import timedelta
 import os
 
 from temporalio.client import Client
+from workflow.document_processing import DocumentProcessingRequest, DocumentProcessingWorkflow
 
 from shared import shared
-from workflow.document_processing import DocumentProcessingRequest, DocumentProcessingWorkflow
 
 
 async def main():

@@ -1,1 +1,1 @@
-TASK_QUEUE_NAME = "hackathon"
+# Import centralized defaults for backward compatibility

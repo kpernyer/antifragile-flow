@@ -9,6 +9,22 @@ from pathlib import Path
 
 from temporalio import activity
 
+# Optional imports - handled gracefully if not available
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
+
+try:
+    import docx
+except ImportError:
+    docx = None
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 
 @dataclass
 class DocumentInfo:
@@ -116,55 +132,61 @@ async def _extract_text_from_file(file_path: str, file_type: str) -> str:
     try:
         if file_type in [".txt", ".md", ".csv"]:
             # Plain text files
-            with open(file_path, encoding="utf-8") as f:
+            with Path(file_path).open(encoding="utf-8") as f:
                 return f.read()
 
         elif file_type == ".pdf":
             # Try to extract from PDF
-            try:
-                import PyPDF2
+            if PyPDF2 is None:
+                activity.logger.warning("PyPDF2 not available for PDF extraction")
+                return f"PDF file: {Path(file_path).name} (text extraction requires PyPDF2)"
 
-                with open(file_path, "rb") as f:
+            try:
+                with Path(file_path).open("rb") as f:
                     reader = PyPDF2.PdfReader(f)
                     text = ""
                     for page in reader.pages:
                         text += page.extract_text() + "\n"
                     return text
-            except ImportError:
-                activity.logger.warning("PyPDF2 not available for PDF extraction")
-                return f"PDF file: {Path(file_path).name} (text extraction requires PyPDF2)"
+            except Exception as e:
+                activity.logger.warning(f"PDF extraction failed: {e}")
+                return f"PDF file: {Path(file_path).name} (PDF extraction failed: {e})"
 
         elif file_type in [".docx", ".doc"]:
             # Try to extract from Word documents
-            try:
-                import docx
-
-                doc = docx.Document(file_path)
-                text = ""
-                for paragraph in doc.paragraphs:
-                    text += paragraph.text + "\n"
-                return text
-            except ImportError:
+            if docx is None:
                 activity.logger.warning("python-docx not available for Word extraction")
                 return (
                     f"Word document: {Path(file_path).name} (text extraction requires python-docx)"
                 )
 
+            try:
+                doc = docx.Document(file_path)
+                text = ""
+                for paragraph in doc.paragraphs:
+                    text += paragraph.text + "\n"
+                return text
+            except Exception as e:
+                activity.logger.warning(f"Word extraction failed: {e}")
+                return f"Word document: {Path(file_path).name} (Word extraction failed: {e})"
+
         elif file_type in [".xlsx", ".xls"]:
             # Try to extract from Excel
-            try:
-                import pandas as pd
-
-                df = pd.read_excel(file_path)
-                return df.to_string()
-            except ImportError:
+            if pd is None:
                 activity.logger.warning("pandas not available for Excel extraction")
                 return f"Excel file: {Path(file_path).name} (text extraction requires pandas)"
+
+            try:
+                df = pd.read_excel(file_path)
+                return df.to_string()
+            except Exception as e:
+                activity.logger.warning(f"Excel extraction failed: {e}")
+                return f"Excel file: {Path(file_path).name} (Excel extraction failed: {e})"
 
         else:
             # Unsupported file type - try reading as plain text
             try:
-                with open(file_path, encoding="utf-8", errors="ignore") as f:
+                with Path(file_path).open(encoding="utf-8", errors="ignore") as f:
                     content = f.read()
                     if content.strip():
                         return content
