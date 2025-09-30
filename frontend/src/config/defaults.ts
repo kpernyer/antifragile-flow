@@ -85,36 +85,36 @@ export const TASK_QUEUES = {
  * Environment-aware configuration getters.
  */
 export const getTemporalAddress = (): string => {
-  return process.env.REACT_APP_TEMPORAL_ADDRESS || DEFAULT_URLS.TEMPORAL_LOCAL;
+  return process.env['REACT_APP_TEMPORAL_ADDRESS'] || DEFAULT_URLS.TEMPORAL_LOCAL;
 };
 
 export const getTemporalUIUrl = (workflowId: string, namespace: string = 'default'): string => {
-  const baseUrl = process.env.REACT_APP_TEMPORAL_UI_ADDRESS || DEFAULT_URLS.TEMPORAL_UI_LOCAL;
+  const baseUrl = process.env['REACT_APP_TEMPORAL_UI_ADDRESS'] || DEFAULT_URLS.TEMPORAL_UI_LOCAL;
   return `${baseUrl}/namespaces/${namespace}/workflows/${workflowId}`;
 };
 
 export const getApiUrl = (): string => {
-  return process.env.REACT_APP_API_URL || DEFAULT_URLS.API_LOCAL;
+  return process.env['REACT_APP_API_URL'] || DEFAULT_URLS.API_LOCAL;
 };
 
 export const getGraphQLUrl = (): string => {
-  return process.env.REACT_APP_GRAPHQL_URL || DEFAULT_URLS.GRAPHQL_LOCAL;
+  return process.env['REACT_APP_GRAPHQL_URL'] || DEFAULT_URLS.GRAPHQL_LOCAL;
 };
 
 export const getGraphQLEndpoint = (): string => {
-  return process.env.REACT_APP_GRAPHQL_ENDPOINT || DEFAULT_URLS.GRAPHQL_ENDPOINT;
+  return process.env['REACT_APP_GRAPHQL_ENDPOINT'] || DEFAULT_URLS.GRAPHQL_ENDPOINT;
 };
 
 export const getGraphQLPlaygroundUrl = (): string => {
-  return process.env.REACT_APP_GRAPHQL_PLAYGROUND || DEFAULT_URLS.GRAPHQL_PLAYGROUND;
+  return process.env['REACT_APP_GRAPHQL_PLAYGROUND'] || DEFAULT_URLS.GRAPHQL_PLAYGROUND;
 };
 
 export const getGraphQLSubscriptionsUrl = (): string => {
-  return process.env.REACT_APP_GRAPHQL_SUBSCRIPTIONS || DEFAULT_URLS.GRAPHQL_SUBSCRIPTIONS;
+  return process.env['REACT_APP_GRAPHQL_SUBSCRIPTIONS'] || DEFAULT_URLS.GRAPHQL_SUBSCRIPTIONS;
 };
 
 export const getFrontendUrl = (): string => {
-  return process.env.REACT_APP_FRONTEND_URL || DEFAULT_URLS.FRONTEND_LOCAL;
+  return process.env['REACT_APP_FRONTEND_URL'] || DEFAULT_URLS.FRONTEND_LOCAL;
 };
 
 // Backward compatibility

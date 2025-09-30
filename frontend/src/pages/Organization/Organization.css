@@ -1,0 +1,17 @@
+.organization-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.organization-container .MuiCard-root {
+  height: 100%;
+}
+
+.organization-container .MuiLinearProgress-root {
+  background-color: #f5f5f5;
+}
+
+.organization-container .MuiChip-root {
+  margin-right: 0.5rem;
+}

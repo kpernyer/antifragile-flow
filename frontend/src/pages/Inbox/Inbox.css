@@ -1,0 +1,13 @@
+.inbox-container {
+  padding: 2rem;
+}
+
+.email-list-container {
+  border-right: 1px solid #ccc;
+  height: 500px;
+  overflow-y: auto;
+}
+
+.email-content-container {
+  height: 500px;
+}

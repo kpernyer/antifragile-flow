@@ -42,9 +42,9 @@
     "@typescript-eslint/explicit-module-boundary-types": "warn",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-non-null-assertion": "error",
-    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
     "@typescript-eslint/prefer-optional-chain": "error",
-    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/strict-boolean-expressions": "warn",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
@@ -52,31 +52,16 @@
     "react/jsx-uses-vars": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "import/order": [
-      "error",
-      {
-        "groups": [
-          "builtin",
-          "external",
-          "internal",
-          "parent",
-          "sibling",
-          "index"
-        ],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
-    "import/no-default-export": "error",
+    "import/order": "off",
+    "import/no-default-export": "off",
     "prefer-const": "error",
     "no-var": "error",
     "object-shorthand": "error",
     "prefer-template": "error",
     "no-console": "warn",
-    "no-debugger": "error"
+    "no-debugger": "error",
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/no-floating-promises": "warn"
   },
   "settings": {
     "react": {

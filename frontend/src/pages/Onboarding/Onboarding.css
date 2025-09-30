@@ -1,0 +1,20 @@
+.onboarding-container {
+  padding: 2rem;
+}
+
+.dropzone {
+  padding: 2rem;
+  margin-bottom: 1rem;
+}
+
+.dropzone-area {
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.suggestions-container {
+  margin-top: 2rem;
+}

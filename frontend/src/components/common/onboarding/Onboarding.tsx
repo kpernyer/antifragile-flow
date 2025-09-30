@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import UploadStep from './UploadStep';
-import { FileMetadata } from '../../types';
+import { FileMetadata } from '../../../types';
 
 const Onboarding: React.FC = () => {
   const [files, setFiles] = useState<Record<string, FileMetadata[]>>({});

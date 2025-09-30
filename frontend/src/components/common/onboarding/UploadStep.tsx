@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FileDropzone from './FileDropzone';
-import { FileMetadata } from '../../types';
-import { quickScan } from '../../services/mockApi';
+import { FileMetadata } from '../../../types';
+import { quickScan } from '../../../services/mockApi';
 
 interface UploadStepProps {
   title: string;
