@@ -41,6 +41,8 @@ from activity.scheduler_activities import (
 from agent_activity.ai_activities import (
     analyze_document_content,
     generate_document_summary,
+    run_catchball,
+    synthesize_wisdom,
 )
 
 # Export all activities for worker registration
@@ -56,9 +58,11 @@ __all__ = [
     "get_organization_training_history",
     "health_check_external_services",
     "process_document_upload",
+    "run_catchball",
     "schedule_competitor_scan",
     "send_scheduled_notification",
     "start_model_improvement",
     "submit_model_training_job",
+    "synthesize_wisdom",
     "validate_training_readiness",
 ]

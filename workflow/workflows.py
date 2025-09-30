@@ -12,6 +12,11 @@ Architecture:
 """
 
 # Import all business workflows for worker registration
+from workflow.daily_interaction_workflow import (
+    DailyInteractionRequest,
+    DailyInteractionResult,
+    DailyInteractionWorkflow,
+)
 from workflow.document_processing_workflow import (
     DocumentProcessingRequest,
     DocumentProcessingResult,
@@ -40,6 +45,10 @@ __all__ = [
     "DocumentProcessingWorkflow",
     "DocumentProcessingRequest",
     "DocumentProcessingResult",
+    # Daily Interaction (Demo Workflow)
+    "DailyInteractionWorkflow",
+    "DailyInteractionRequest",
+    "DailyInteractionResult",
     # Scheduler/Monitoring
     "CompetitorMonitoringWorkflow",
     "WeeklyCompetitorReportRequest",

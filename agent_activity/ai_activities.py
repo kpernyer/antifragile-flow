@@ -205,3 +205,56 @@ async def perform_simple_research(query: str, context: str | None = None) -> Sim
             success=False,
             error_message=str(e),
         )
+
+
+# Demo-specific LLM activities for daily interaction workflows
+
+
+@activity.defn
+async def run_catchball(user: str, prompt: str, state: dict) -> dict:
+    """
+    Runs a catchball interaction with an LLM.
+    Simulates back-and-forth refinement between managers.
+    """
+    activity.logger.info(f"Running catchball for user {user}")
+
+    try:
+        # In a real implementation, would call LLM with user, prompt, and state
+        # For demo, we simulate the interaction
+        new_state = state.copy()
+        new_state["last_user"] = user
+        new_state["last_update"] = datetime.now().isoformat()
+
+        # Could integrate with writer_agent for more sophisticated responses
+        activity.logger.info(f"Catchball completed for user {user}")
+        return new_state
+
+    except Exception as e:
+        activity.logger.error(f"Catchball failed for user {user}: {e!s}")
+        raise
+
+
+@activity.defn
+async def synthesize_wisdom(prompt: str, feedback: list[str]) -> dict:
+    """
+    Synthesizes wisdom from a prompt and a list of feedback.
+    Aggregates responses from multiple users into a coherent summary.
+    """
+    activity.logger.info("Synthesizing wisdom from crowd feedback")
+
+    try:
+        # In a real implementation, would use LLM to synthesize feedback
+        # For demo, we aggregate the feedback
+        synthesis = {
+            "synthesis": ", ".join(feedback),
+            "total_responses": len(feedback),
+            "synthesized_at": datetime.now().isoformat(),
+        }
+
+        # Could integrate with writer_agent for more sophisticated synthesis
+        activity.logger.info("Wisdom synthesis completed")
+        return synthesis
+
+    except Exception as e:
+        activity.logger.error(f"Wisdom synthesis failed: {e!s}")
+        raise

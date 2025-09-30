@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding</title>
+</head>
+<body>
+    <h1>Upload Document</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="organization">Organization:</label>
+        <input type="text" id="organization" name="organization" required><br><br>
+        <label for="user">User:</label>
+        <input type="text" id="user" name="user" required><br><br>
+        <label for="file">Document:</label>
+        <input type="file" id="file" name="file" required><br><br>
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>
+

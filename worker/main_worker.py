@@ -30,11 +30,13 @@ from activity.activities import (
     health_check_external_services,
     # Document processing activities
     process_document_upload,
+    run_catchball,
     schedule_competitor_scan,
     send_scheduled_notification,
     start_model_improvement,
     # Organizational learning activities (business interface to services)
     submit_model_training_job,
+    synthesize_wisdom,
     validate_training_readiness,
 )
 
@@ -44,6 +46,7 @@ from shared.config.defaults import TASK_QUEUE_NAME, get_temporal_address
 # Import consolidated modules (proper naming convention)
 from workflow.workflows import (
     CompetitorMonitoringWorkflow,
+    DailyInteractionWorkflow,
     DocumentProcessingWorkflow,
     OrganizationOnboardingWorkflow,
 )
@@ -77,6 +80,7 @@ async def main():
             # Business workflows (thin orchestration)
             OrganizationOnboardingWorkflow,
             DocumentProcessingWorkflow,
+            DailyInteractionWorkflow,
             CompetitorMonitoringWorkflow,
         ],
         activities=[
@@ -98,6 +102,9 @@ async def main():
             collect_model_feedback,
             start_model_improvement,
             validate_training_readiness,
+            # Demo interaction activities
+            run_catchball,
+            synthesize_wisdom,
         ],
     )
 
