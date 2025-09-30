@@ -10,6 +10,8 @@ import logging
 
 from temporalio import activity
 
+from shared.models.types import DataType, NotificationType, Priority, ScanType
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,9 +20,9 @@ class CompetitorScanRequest:
     """Request for competitor scanning"""
 
     competitors: list[str]
-    scan_type: str = "news"  # news, social, financial, all
+    scan_type: str = "news"  # Keep as string for backward compatibility with workflow
     lookback_days: int = 7
-    priority: str = "normal"  # low, normal, high
+    priority: str = "normal"  # Keep as string for backward compatibility
 
 
 @dataclass
@@ -130,10 +132,11 @@ async def schedule_competitor_scan(request: CompetitorScanRequest) -> Competitor
 
 @activity.defn
 async def send_scheduled_notification(
-    recipient: str, subject: str, message: str, notification_type: str = "email"
+    recipient: str, subject: str, message: str, notification_type: str = "email"  # String for compatibility
 ) -> ScheduledTaskResult:
     """
     Send scheduled notifications (email, slack, etc.)
+    Accepts notification_type as string for backward compatibility with workflows.
     """
     task_id = f"notification-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     execution_time = datetime.now()
@@ -177,6 +180,7 @@ async def send_scheduled_notification(
 async def cleanup_old_data(data_type: str, retention_days: int = 30) -> ScheduledTaskResult:
     """
     Scheduled cleanup of old data (documents, reports, cache, etc.)
+    Accepts data_type as string for backward compatibility with workflows.
     """
     task_id = f"cleanup-{data_type}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     execution_time = datetime.now()

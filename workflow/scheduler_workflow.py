@@ -4,9 +4,13 @@ Demonstrates how to implement scheduled tasks using Temporal.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
+
+# Mark shared.models as pass-through since it contains Pydantic models
+with workflow.unsafe.imports_passed_through():
+    from shared.models.types import DataType, NotificationType, ScanType, TaskType
 
 from activity.scheduler_activities import (
     CompetitorScanRequest,
@@ -25,7 +29,7 @@ class WeeklyCompetitorReportRequest:
 
     competitors: list[str]
     recipients: list[str]
-    scan_types: list[str] = None
+    scan_types: list[ScanType] = None
     notification_enabled: bool = True
 
 
@@ -34,7 +38,7 @@ class WeeklyCompetitorReportResult:
     """Result from weekly competitor monitoring"""
 
     report_id: str
-    report_date: datetime
+    report_date: str  # Use string instead of datetime for Temporal serialization
     competitors_analyzed: int
     scan_results: list[CompetitorScanResult]
     notifications_sent: int
@@ -66,16 +70,16 @@ class CompetitorMonitoringWorkflow:
             f"Starting weekly competitor monitoring for {len(request.competitors)} competitors"
         )
 
-        report_id = f"competitor-report-{datetime.now().strftime('%Y%m%d')}"
+        report_id = f"competitor-report-{workflow.now().strftime('%Y%m%d')}"
         scan_results = []
         notifications_sent = 0
 
         try:
             # Step 1: Scan each competitor
-            for scan_type in request.scan_types or ["news"]:
+            for scan_type in request.scan_types or [ScanType.NEWS]:
                 scan_request = CompetitorScanRequest(
                     competitors=request.competitors,
-                    scan_type=scan_type,
+                    scan_type=scan_type.value,  # Convert enum to string for activity
                     lookback_days=7,  # Last week
                     priority="normal",
                 )
@@ -84,7 +88,7 @@ class CompetitorMonitoringWorkflow:
                     schedule_competitor_scan,
                     scan_request,
                     start_to_close_timeout=workflow.timedelta(minutes=10),
-                    retry_policy=workflow.RetryPolicy(
+                    retry_policy=RetryPolicy(
                         initial_interval=workflow.timedelta(seconds=5),
                         maximum_attempts=3,
                     ),
@@ -101,7 +105,7 @@ class CompetitorMonitoringWorkflow:
                 summary = f"Weekly Competitor Report ({report_id})\\n"
                 summary += f"Competitors monitored: {len(request.competitors)}\\n"
                 summary += f"Total findings: {total_findings}\\n"
-                summary += f"Scan types: {', '.join(request.scan_types or ['news'])}\\n\\n"
+                summary += f"Scan types: {', '.join([st.value for st in (request.scan_types or [ScanType.NEWS])])}\\n\\n"
 
                 for result in successful_scans:
                     summary += f"- {result.competitors_scanned} competitors scanned, {result.results_found} results found\\n"
@@ -111,9 +115,9 @@ class CompetitorMonitoringWorkflow:
                     notification_result = await workflow.execute_activity(
                         send_scheduled_notification,
                         recipient,
-                        f"Weekly Competitor Report - {datetime.now().strftime('%Y-%m-%d')}",
+                        f"Weekly Competitor Report - {workflow.now().strftime('%Y-%m-%d')}",
                         summary,
-                        "email",
+                        NotificationType.EMAIL.value,
                         start_to_close_timeout=workflow.timedelta(minutes=2),
                     )
 
@@ -124,7 +128,7 @@ class CompetitorMonitoringWorkflow:
 
             return WeeklyCompetitorReportResult(
                 report_id=report_id,
-                report_date=datetime.now(),
+                report_date=workflow.now().isoformat(),
                 competitors_analyzed=len(request.competitors),
                 scan_results=scan_results,
                 notifications_sent=notifications_sent,
@@ -136,7 +140,7 @@ class CompetitorMonitoringWorkflow:
 
             return WeeklyCompetitorReportResult(
                 report_id=report_id,
-                report_date=datetime.now(),
+                report_date=workflow.now().isoformat(),
                 competitors_analyzed=len(request.competitors),
                 scan_results=scan_results,
                 notifications_sent=notifications_sent,
@@ -179,7 +183,7 @@ class MaintenanceWorkflow:
             # Task 2: Cleanup old documents (keep 30 days)
             doc_cleanup_result = await workflow.execute_activity(
                 cleanup_old_data,
-                "documents",
+                DataType.DOCUMENTS.value,
                 30,
                 start_to_close_timeout=workflow.timedelta(minutes=10),
             )
@@ -188,7 +192,7 @@ class MaintenanceWorkflow:
             # Task 3: Cleanup old reports (keep 90 days)
             report_cleanup_result = await workflow.execute_activity(
                 cleanup_old_data,
-                "reports",
+                DataType.REPORTS.value,
                 90,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
             )
@@ -197,7 +201,7 @@ class MaintenanceWorkflow:
             # Task 4: Cleanup cache data (keep 7 days)
             cache_cleanup_result = await workflow.execute_activity(
                 cleanup_old_data,
-                "cache",
+                DataType.CACHE.value,
                 7,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
             )
@@ -217,7 +221,7 @@ class MaintenanceWorkflow:
                     "admin@company.com",
                     "Daily Maintenance Alert - Some Tasks Failed",
                     summary,
-                    "email",
+                    NotificationType.EMAIL.value,
                     start_to_close_timeout=workflow.timedelta(minutes=2),
                 )
 
@@ -236,7 +240,7 @@ class MaintenanceWorkflow:
                 "admin@company.com",
                 "Daily Maintenance Error",
                 f"Daily maintenance workflow failed: {e!s}",
-                "email",
+                NotificationType.EMAIL.value,
                 start_to_close_timeout=workflow.timedelta(minutes=2),
             )
 
@@ -251,12 +255,12 @@ class AdHocSchedulerWorkflow:
     """
 
     @workflow.run
-    async def run(self, task_type: str, task_params: dict) -> ScheduledTaskResult:
+    async def run(self, task_type: TaskType, task_params: dict) -> ScheduledTaskResult:
         """Execute an ad-hoc scheduled task"""
 
-        workflow.logger.info(f"Starting ad-hoc task: {task_type}")
+        workflow.logger.info(f"Starting ad-hoc task: {task_type.value}")
 
-        if task_type == "competitor_scan":
+        if task_type == TaskType.COMPETITOR_SCAN:
             request = CompetitorScanRequest(**task_params)
             result = await workflow.execute_activity(
                 schedule_competitor_scan,
@@ -266,7 +270,7 @@ class AdHocSchedulerWorkflow:
 
             return ScheduledTaskResult(
                 task_id=result.scan_id,
-                task_type=task_type,
+                task_type=task_type.value,
                 execution_time=result.scan_date,
                 success=result.success,
                 results={
@@ -276,20 +280,21 @@ class AdHocSchedulerWorkflow:
                 },
             )
 
-        elif task_type == "health_check":
+        elif task_type == TaskType.HEALTH_CHECK:
             result = await workflow.execute_activity(
                 health_check_external_services,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
             )
             return result
 
-        elif task_type == "cleanup":
-            data_type = task_params.get("data_type", "documents")
+        elif task_type == TaskType.CLEANUP:
+            data_type_str = task_params.get("data_type", "documents")
+            data_type = DataType(data_type_str)  # Convert string to enum
             retention_days = task_params.get("retention_days", 30)
 
             result = await workflow.execute_activity(
                 cleanup_old_data,
-                data_type,
+                data_type.value,  # Convert enum to string for activity
                 retention_days,
                 start_to_close_timeout=workflow.timedelta(minutes=10),
             )
@@ -298,9 +303,9 @@ class AdHocSchedulerWorkflow:
         else:
             # Unknown task type
             return ScheduledTaskResult(
-                task_id=f"unknown-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-                task_type=task_type,
-                execution_time=datetime.now(),
+                task_id=f"unknown-{workflow.now().strftime('%Y%m%d-%H%M%S')}",
+                task_type=task_type.value,
+                execution_time=workflow.now(),
                 success=False,
-                results={"error": f"Unknown task type: {task_type}"},
+                results={"error": f"Unknown task type: {task_type.value}"},
             )

@@ -11,6 +11,7 @@ import os
 from temporalio.client import Client
 
 from shared import shared
+from shared.models.types import ScanType, TaskType
 from workflow.scheduler_workflow import (
     AdHocSchedulerWorkflow,
     CompetitorMonitoringWorkflow,
@@ -32,7 +33,7 @@ async def test_scheduler_activities():
     print("\n🏥 Testing health check...")
     health_result = await client.execute_workflow(
         AdHocSchedulerWorkflow.run,
-        "health_check",
+        TaskType.HEALTH_CHECK,
         {},
         id=f"test-health-check-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         task_queue=shared.TASK_QUEUE_NAME,
@@ -53,7 +54,7 @@ async def test_scheduler_activities():
 
     scan_result = await client.execute_workflow(
         AdHocSchedulerWorkflow.run,
-        "competitor_scan",
+        TaskType.COMPETITOR_SCAN,
         scan_params,
         id=f"test-competitor-scan-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         task_queue=shared.TASK_QUEUE_NAME,
@@ -70,7 +71,7 @@ async def test_scheduler_activities():
 
     cleanup_result = await client.execute_workflow(
         AdHocSchedulerWorkflow.run,
-        "cleanup",
+        TaskType.CLEANUP,
         cleanup_params,
         id=f"test-cleanup-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         task_queue=shared.TASK_QUEUE_NAME,
@@ -96,7 +97,7 @@ async def test_weekly_competitor_monitoring():
     request = WeeklyCompetitorReportRequest(
         competitors=["OpenAI", "Anthropic", "Google AI", "Microsoft AI"],
         recipients=["manager@company.com", "analyst@company.com"],
-        scan_types=["news"],
+        scan_types=[ScanType.NEWS],
         notification_enabled=True,
     )
 

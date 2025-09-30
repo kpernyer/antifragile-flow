@@ -52,9 +52,9 @@ ml = [
 
 [tool.poe.tasks]
 # Development
-dev = "watchmedo auto-restart -p '*.py' -R -- uv run python/src/worker.py"
-worker = "uv run python/src/worker.py"
-starter = "uv run python/src/starter.py"
+dev = "watchmedo auto-restart -p '*.py' -R -- uv run worker/main_worker.py"
+worker = "uv run worker/main_worker.py"
+starter = "uv run demo/demo_runner.py"
 
 # Code Quality
 lint = "ruff check ."

@@ -15,7 +15,13 @@ from typing import Any, Generic, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import Field, validator
+from pydantic import Field
+try:
+    from pydantic import field_validator  # Pydantic V2
+    PYDANTIC_V2 = True
+except ImportError:
+    from pydantic import validator  # Pydantic V1
+    PYDANTIC_V2 = False
 
 
 class ValidationError(Exception):
@@ -78,12 +84,14 @@ class BaseModel(PydanticBaseModel):
             UUID: lambda v: str(v),
         }
 
-    @validator("*", pre=True)
-    def validate_not_none_required(cls, v, field):
-        """Ensure required fields are not None."""
-        if field.required and v is None:
-            raise ValueError(f"Field {field.name} is required and cannot be None")
-        return v
+    # Note: Commented out to avoid Pydantic V1/V2 compatibility issues
+    # Pydantic already validates required fields by default
+    # @validator("*", pre=True)
+    # def validate_not_none_required(cls, v, field):
+    #     """Ensure required fields are not None."""
+    #     if field.required and v is None:
+    #         raise ValueError(f"Field {field.name} is required and cannot be None")
+    #     return v
 
 
 @dataclass
@@ -261,9 +269,10 @@ class ConfigurableModel(BaseModel):
     retry_attempts: int = Field(default=3, ge=0, le=10)
     retry_delay_seconds: int = Field(default=1, ge=0, le=60)
 
-    @validator("timeout_seconds")
-    def validate_timeout(cls, v):
-        """Ensure timeout is reasonable."""
-        if v < 1 or v > 3600:
-            raise ValueError("Timeout must be between 1 and 3600 seconds")
-        return v
+    # Note: Validation already handled by Field constraints (ge=1, le=3600)
+    # @validator("timeout_seconds")
+    # def validate_timeout(cls, v):
+    #     """Ensure timeout is reasonable."""
+    #     if v < 1 or v > 3600:
+    #         raise ValueError("Timeout must be between 1 and 3600 seconds")
+    #     return v

@@ -22,7 +22,8 @@ import tempfile
 
 from temporalio.client import Client
 
-from shared.config.defaults import get_temporal_address
+from shared.config.defaults import TASK_QUEUE_NAME, get_temporal_address
+from shared.models.types import ModelPreference, Priority
 from workflow.organization_onboarding_workflow import (
     OnboardingRequest,
     OrganizationOnboardingWorkflow,
@@ -160,16 +161,16 @@ async def run_onboarding_test(use_qwen: bool = False):
     # Create test documents
     document_paths = create_test_document_files()
 
-    # Determine base model
-    base_model = "Qwen/Qwen2.5-3B-Instruct" if use_qwen else "mistralai/Mistral-7B-Instruct-v0.2"
-    model_type = "Qwen-3B" if use_qwen else "Mistral-7B"
+    # Determine AI preference based on model choice
+    model_type = "Qwen-3B (Fast)" if use_qwen else "Mistral-7B (Balanced)"
+    ai_preference = ModelPreference.FAST if use_qwen else ModelPreference.BALANCED
 
     print(f"🚀 Starting Onboarding Test with {model_type}")
     print(f"📄 Documents: {len(document_paths)} files")
-    print(f"🤖 Base Model: {base_model}")
+    print(f"🤖 AI Training Preference: {ai_preference.value}")
     print("")
 
-    # Create onboarding request
+    # Create onboarding request (using business-level parameters only)
     request = OnboardingRequest(
         organization_name="TechCorp",
         documents=document_paths,
@@ -180,19 +181,10 @@ async def run_onboarding_test(use_qwen: bool = False):
         ],
         competitors=["CompetitorA", "CompetitorB", "IndustryLeader"],
         admin_emails=["admin@techcorp.com"],
-        priority="high",
-        # Model training configuration
-        enable_model_training=True,
-        base_model=base_model,
-        organizational_values=[
-            "excellence",
-            "innovation",
-            "integrity",
-            "customer-centricity",
-            "collaboration",
-        ],
-        communication_style="professional, strategic, and data-driven",
-        deploy_to_ollama=True,
+        priority=Priority.HIGH,
+        # AI Training Options (business-level only - technical details handled by service layer)
+        enable_ai_customization=True,
+        ai_training_preference=ai_preference,
     )
 
     # Generate unique workflow ID
@@ -206,7 +198,7 @@ async def run_onboarding_test(use_qwen: bool = False):
             OrganizationOnboardingWorkflow.run,
             request,
             id=workflow_id,
-            task_queue="onboarding-task-queue",
+            task_queue=TASK_QUEUE_NAME,
         )
 
         print("\n" + "=" * 80)
@@ -222,27 +214,9 @@ async def run_onboarding_test(use_qwen: bool = False):
             print(
                 f"📄 Documents Processed: {result.document_results.successful_documents}/{result.document_results.total_documents}"
             )
-            print("")
-
-        # Model training results
-        if result.model_training_results:
-            print("🤖 Model Training Results:")
-            print(f"   Success: {result.model_training_results.success}")
-            if result.model_training_results.success:
-                print(
-                    f"   Training Examples: {result.model_training_results.training_examples_generated}"
-                )
-                print(
-                    f"   Training Duration: {result.model_training_results.training_duration_minutes:.1f} minutes"
-                )
-                print(f"   Model Path: {result.model_training_results.model_path}")
-                if result.model_training_results.ollama_model_name:
-                    print(f"   Ollama Model: {result.model_training_results.ollama_model_name}")
-                    print(
-                        f"   🚀 Test your model: ollama run {result.model_training_results.ollama_model_name}"
-                    )
-            else:
-                print(f"   Error: {result.model_training_results.error_message}")
+            if result.document_results.training_initiated:
+                print(f"🤖 AI Training: Initiated (Job ID: {result.training_job_id})")
+                print("   Note: Training runs in background, you'll be notified when complete")
             print("")
 
         # Next steps

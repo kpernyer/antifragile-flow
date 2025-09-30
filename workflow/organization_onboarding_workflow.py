@@ -17,6 +17,11 @@ from datetime import datetime, timedelta
 
 from temporalio import workflow
 
+# Mark shared.models as pass-through since it contains Pydantic models
+# that use datetime.utcnow() for default values (not used in workflow logic)
+with workflow.unsafe.imports_passed_through():
+    from shared.models.types import ModelPreference, OnboardingStage, Priority, ScanType
+
 from activity.scheduler_activities import (
     send_scheduled_notification,
 )
@@ -47,29 +52,25 @@ class OnboardingRequest:
     organization_name: str
     documents: list[str]  # File paths to uploaded documents
     research_queries: list[str]  # Initial research questions
-    competitors: list[str] = None  # Known competitors
-    admin_emails: list[str] = None  # Admin notification recipients
-    priority: str = "normal"  # low, normal, high
+    competitors: list[str] | None = None  # Known competitors
+    admin_emails: list[str] | None = None  # Admin notification recipients
+    priority: Priority = Priority.NORMAL
 
-    # LoRA Model Training Options
-    enable_model_training: bool = True  # Enable organizational model fine-tuning
-    base_model: str = "mistralai/Mistral-7B-Instruct-v0.2"  # Base model for training
-    # Alternative: "Qwen/Qwen2.5-3B-Instruct" for smaller/faster training
-    organizational_values: list[str] = None  # Core organizational values
-    communication_style: str = "professional and strategic"  # Communication preferences
-    deploy_to_ollama: bool = True  # Deploy trained model to Ollama
+    # AI Training Options (business-level only)
+    enable_ai_customization: bool = True  # Enable organizational AI model training
+    ai_training_preference: ModelPreference = ModelPreference.BALANCED
 
 
 @dataclass
 class OnboardingProgress:
     """Progress tracking for onboarding process"""
 
-    stage: str  # document_processing, model_training, research, competitor_setup, completed
+    stage: OnboardingStage
     documents_processed: int = 0
     total_documents: int = 0
     model_training_completed: bool = False
     model_training_duration_minutes: float = 0.0
-    ollama_model_name: str = None
+    ollama_model_name: str = ""  # Use empty string instead of None for Temporal serialization
     research_completed: bool = False
     competitor_monitoring_setup: bool = False
     admin_notifications_sent: int = 0
@@ -92,9 +93,9 @@ class OnboardingResult:
     competitor_monitoring: WeeklyCompetitorReportResult | None = None
 
     # Summary information
-    progress: OnboardingProgress = None
+    progress: OnboardingProgress | None = None
     admin_summary: str = ""
-    next_steps: list[str] = None
+    next_steps: list[str] | None = None
 
 
 @workflow.defn
@@ -123,7 +124,7 @@ class OrganizationOnboardingWorkflow:
     """
 
     def __init__(self) -> None:
-        self._progress = OnboardingProgress(stage="initializing")
+        self._progress = OnboardingProgress(stage=OnboardingStage.INITIALIZING)
 
     @workflow.run
     async def run(self, request: OnboardingRequest) -> OnboardingResult:
@@ -137,7 +138,7 @@ class OrganizationOnboardingWorkflow:
             Complete onboarding result with all sub-process outcomes
         """
 
-        start_time = datetime.now()
+        start_time = workflow.now()
         onboarding_id = f"onboarding-{request.organization_name.lower().replace(' ', '-')}-{start_time.strftime('%Y%m%d-%H%M%S')}"
 
         workflow.logger.info(
@@ -146,26 +147,24 @@ class OrganizationOnboardingWorkflow:
 
         # Initialize progress tracking
         self._progress = OnboardingProgress(
-            stage="document_processing", total_documents=len(request.documents)
+            stage=OnboardingStage.DOCUMENT_PROCESSING, total_documents=len(request.documents)
         )
 
         try:
             # === PHASE 1: DOCUMENT PROCESSING ===
             workflow.logger.info("Phase 1: Document Processing")
-            self._progress.stage = "document_processing"
+            self._progress.stage = OnboardingStage.DOCUMENT_PROCESSING
 
             doc_processing_request = DocumentProcessingRequest(
                 file_paths=request.documents,
                 priority=request.priority,
                 admin_notification=True,
                 deep_analysis=True,
-                # Organizational learning parameters
+                # Organizational learning parameters (business-level only)
                 organization_name=request.organization_name,
                 organization_id=request.organization_name.lower().replace(" ", "-"),
-                enable_model_training=request.enable_model_training,
-                model_preference="balanced",  # Map from base_model if needed
-                organizational_values=request.organizational_values,
-                communication_style=request.communication_style,
+                enable_model_training=request.enable_ai_customization,
+                model_preference=request.ai_training_preference,
             )
 
             # Execute document processing as child workflow
@@ -191,12 +190,12 @@ class OrganizationOnboardingWorkflow:
 
             # === PHASE 2: ORGANIZATIONAL AI TRAINING STATUS ===
             workflow.logger.info("Phase 2: Checking Organizational AI Training")
-            self._progress.stage = "ai_training_status"
+            self._progress.stage = OnboardingStage.AI_TRAINING_STATUS
 
             # Model training is handled by DocumentProcessing workflow (non-blocking)
             if document_results.training_initiated:
                 self._progress.model_training_completed = False  # Training in progress
-                self._progress.ollama_model_name = None  # Will be available later
+                self._progress.ollama_model_name = ""  # Will be available later
                 workflow.logger.info(
                     f"Organizational AI training initiated: {document_results.training_job_id}"
                 )
@@ -215,7 +214,7 @@ class OrganizationOnboardingWorkflow:
 
             # === PHASE 3: INTERACTIVE RESEARCH ===
             workflow.logger.info("Phase 3: Interactive Research")
-            self._progress.stage = "research"
+            self._progress.stage = OnboardingStage.RESEARCH
 
             # TODO: Re-enable after fixing research workflow imports
             research_results = None
@@ -232,14 +231,14 @@ class OrganizationOnboardingWorkflow:
 
             # === PHASE 4: COMPETITOR MONITORING SETUP ===
             workflow.logger.info("Phase 4: Competitor Monitoring Setup")
-            self._progress.stage = "competitor_setup"
+            self._progress.stage = OnboardingStage.COMPETITOR_SETUP
 
             competitor_monitoring = None
             if request.competitors:
                 competitor_request = WeeklyCompetitorReportRequest(
                     competitors=request.competitors,
                     recipients=request.admin_emails or ["admin@company.com"],
-                    scan_types=["news"],
+                    scan_types=[ScanType.NEWS],
                     notification_enabled=True,
                 )
 
@@ -257,8 +256,8 @@ class OrganizationOnboardingWorkflow:
                     workflow.logger.warning(f"Competitor monitoring setup failed: {e}")
 
             # === PHASE 5: COMPLETION ===
-            self._progress.stage = "completed"
-            end_time = datetime.now()
+            self._progress.stage = OnboardingStage.COMPLETED
+            end_time = workflow.now()
 
             # Send final admin notification
             final_summary = self._create_final_summary(
@@ -308,7 +307,7 @@ class OrganizationOnboardingWorkflow:
                 organization_name=request.organization_name,
                 onboarding_id=onboarding_id,
                 start_time=start_time,
-                end_time=datetime.now(),
+                end_time=workflow.now(),
                 success=False,
                 progress=self._progress,
                 admin_summary=f"Onboarding failed: {e!s}",
@@ -391,8 +390,6 @@ class OrganizationOnboardingWorkflow:
             )
             steps.append("You'll be notified when your custom AI model is ready for testing")
             steps.append("Prepare feedback collection process for model improvement")
-        elif request.enable_model_training:
-            steps.append("Consider uploading additional organizational documents for AI training")
 
         if research_results:
             steps.append("Follow up on research findings and recommendations")

@@ -16,7 +16,7 @@ async def test_weaviate_upsert():
     assert True
 
 # Placeholder for Neo4j upsert test
-@pytest.fmark.asyncio
+@pytest.mark.asyncio
 async def test_neo4j_upsert():
     assert True
 

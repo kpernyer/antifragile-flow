@@ -13,6 +13,11 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
+
+# Mark shared.models as pass-through since it contains Pydantic models
+with workflow.unsafe.imports_passed_through():
+    from shared.models.types import ModelPreference, Priority
 
 from activity.document_activities import (
     DocumentSummaryResult,
@@ -35,17 +40,15 @@ class DocumentProcessingRequest:
     """Request for document processing workflow"""
 
     file_paths: list[str]
-    priority: str = "normal"  # low, normal, high
+    priority: Priority = Priority.NORMAL
     admin_notification: bool = True
     deep_analysis: bool = True
 
-    # Organizational learning options
+    # Organizational learning options (business-level only)
     organization_name: str = ""
     organization_id: str = ""
     enable_model_training: bool = False
-    model_preference: str = "balanced"  # fast, balanced, detailed
-    organizational_values: list[str] = None
-    communication_style: str = "professional"
+    model_preference: ModelPreference = ModelPreference.BALANCED
 
 
 @dataclass
@@ -130,7 +133,7 @@ class DocumentProcessingWorkflow:
                         generate_document_summary,
                         file_path,
                         start_to_close_timeout=timedelta(minutes=5),
-                        retry_policy=workflow.RetryPolicy(
+                        retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=5),
                             maximum_attempts=3,
                         ),
@@ -146,9 +149,9 @@ class DocumentProcessingWorkflow:
                         process_document_upload,
                         file_path,
                         start_to_close_timeout=timedelta(minutes=5),
-                        retry_policy=workflow.RetryPolicy(
+                        retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=5),
-                            maximum_attempts=3,
+                            maximum_attempts=2,
                         ),
                     )
 
@@ -157,9 +160,9 @@ class DocumentProcessingWorkflow:
                         analyze_document_content,
                         document_info,
                         start_to_close_timeout=timedelta(minutes=10),
-                        retry_policy=workflow.RetryPolicy(
+                        retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=10),
-                            maximum_attempts=2,
+                            maximum_attempts=3,
                         ),
                     )
 
