@@ -8,6 +8,8 @@ with workflow.unsafe.imports_passed_through():
     from shared.models.types import InteractionMode
     from agent_activity.ai_activities import run_catchball, synthesize_wisdom
 
+from shared.config.defaults import OPENAI_QUEUE
+
 @dataclass
 class DailyInteractionRequest:
     mode: InteractionMode
@@ -58,7 +60,8 @@ class DailyInteractionWorkflow:
             response = await workflow.execute_activity(
                 run_catchball,
                 (current_user, request.prompt, current_state),
-                start_to_close_timeout=timedelta(minutes=10)
+                start_to_close_timeout=timedelta(minutes=10),
+                task_queue=OPENAI_QUEUE  # Route to OpenAI worker
             )
             current_state = response
 
@@ -74,7 +77,8 @@ class DailyInteractionWorkflow:
         synthesis = await workflow.execute_activity(
             synthesize_wisdom,
             (request.prompt, self._feedback),
-            start_to_close_timeout=timedelta(minutes=15)
+            start_to_close_timeout=timedelta(minutes=15),
+            task_queue=OPENAI_QUEUE  # Route to OpenAI worker
         )
 
         return DailyInteractionResult(success=True, message="Wisdom synthesis completed.", final_state=synthesis)

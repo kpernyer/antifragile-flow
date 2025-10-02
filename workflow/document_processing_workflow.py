@@ -33,6 +33,7 @@ from agent_activity.ai_activities import (
     analyze_document_content,
     generate_document_summary,  # AI-powered activities
 )
+from shared.config.defaults import DEFAULT_QUEUE, OPENAI_QUEUE
 
 
 @dataclass
@@ -133,6 +134,7 @@ class DocumentProcessingWorkflow:
                         generate_document_summary,
                         file_path,
                         start_to_close_timeout=timedelta(minutes=5),
+                        task_queue=OPENAI_QUEUE,  # Route to OpenAI worker
                         retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=5),
                             maximum_attempts=3,
@@ -149,6 +151,7 @@ class DocumentProcessingWorkflow:
                         process_document_upload,
                         file_path,
                         start_to_close_timeout=timedelta(minutes=5),
+                        task_queue=DEFAULT_QUEUE,  # Route to default worker
                         retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=5),
                             maximum_attempts=2,
@@ -160,6 +163,7 @@ class DocumentProcessingWorkflow:
                         analyze_document_content,
                         document_info,
                         start_to_close_timeout=timedelta(minutes=10),
+                        task_queue=OPENAI_QUEUE,  # Route to OpenAI worker
                         retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=10),
                             maximum_attempts=3,
@@ -205,6 +209,7 @@ class DocumentProcessingWorkflow:
                     request.organization_name,
                     training_documents,
                     start_to_close_timeout=timedelta(minutes=1),
+                    task_queue=DEFAULT_QUEUE,  # Route to default worker
                 )
 
                 if validation["ready"]:
@@ -223,6 +228,7 @@ class DocumentProcessingWorkflow:
                         submit_model_training_job,
                         training_submission,
                         start_to_close_timeout=timedelta(minutes=2),
+                        task_queue=DEFAULT_QUEUE,  # Route to default worker
                     )
 
                     training_initiated = True

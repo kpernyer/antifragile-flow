@@ -89,8 +89,13 @@ class DefaultCredentials:
 class TaskQueues:
     """Temporal task queue names."""
 
-    # Current simplified queue name
-    DEFAULT = "hackathon"
+    # Three-worker architecture
+    DEFAULT = "default-queue"  # General activities
+    ML = "ml-queue"  # ML training and model activities
+    OPENAI = "openai-queue"  # OpenAI API calls and AI agents
+
+    # Legacy simplified queue name
+    HACKATHON = "hackathon"
 
     # Future organized queues
     ONBOARDING = "onboarding-queue"
@@ -151,3 +156,8 @@ QUEUES = TaskQueues()
 
 # Backward compatibility - maintain current TASK_QUEUE_NAME
 TASK_QUEUE_NAME = QUEUES.DEFAULT
+
+# Export individual queue names for easy access
+DEFAULT_QUEUE = QUEUES.DEFAULT
+ML_QUEUE = QUEUES.ML
+OPENAI_QUEUE = QUEUES.OPENAI

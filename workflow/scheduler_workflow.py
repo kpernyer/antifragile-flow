@@ -21,6 +21,7 @@ from activity.scheduler_activities import (
     schedule_competitor_scan,
     send_scheduled_notification,
 )
+from shared.config.defaults import DEFAULT_QUEUE
 
 
 @dataclass
@@ -88,6 +89,7 @@ class CompetitorMonitoringWorkflow:
                     schedule_competitor_scan,
                     scan_request,
                     start_to_close_timeout=workflow.timedelta(minutes=10),
+                    task_queue=DEFAULT_QUEUE,  # Route to default worker
                     retry_policy=RetryPolicy(
                         initial_interval=workflow.timedelta(seconds=5),
                         maximum_attempts=3,
@@ -119,6 +121,7 @@ class CompetitorMonitoringWorkflow:
                         summary,
                         NotificationType.EMAIL.value,
                         start_to_close_timeout=workflow.timedelta(minutes=2),
+                        task_queue=DEFAULT_QUEUE,  # Route to default worker
                     )
 
                     if notification_result.success:
@@ -177,6 +180,7 @@ class MaintenanceWorkflow:
             health_result = await workflow.execute_activity(
                 health_check_external_services,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             results.append(health_result)
 
@@ -186,6 +190,7 @@ class MaintenanceWorkflow:
                 DataType.DOCUMENTS.value,
                 30,
                 start_to_close_timeout=workflow.timedelta(minutes=10),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             results.append(doc_cleanup_result)
 
@@ -195,6 +200,7 @@ class MaintenanceWorkflow:
                 DataType.REPORTS.value,
                 90,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             results.append(report_cleanup_result)
 
@@ -204,6 +210,7 @@ class MaintenanceWorkflow:
                 DataType.CACHE.value,
                 7,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             results.append(cache_cleanup_result)
 
@@ -223,6 +230,7 @@ class MaintenanceWorkflow:
                     summary,
                     NotificationType.EMAIL.value,
                     start_to_close_timeout=workflow.timedelta(minutes=2),
+                    task_queue=DEFAULT_QUEUE,  # Route to default worker
                 )
 
             workflow.logger.info(
@@ -242,6 +250,7 @@ class MaintenanceWorkflow:
                 f"Daily maintenance workflow failed: {e!s}",
                 NotificationType.EMAIL.value,
                 start_to_close_timeout=workflow.timedelta(minutes=2),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
 
             return results
@@ -266,6 +275,7 @@ class AdHocSchedulerWorkflow:
                 schedule_competitor_scan,
                 request,
                 start_to_close_timeout=workflow.timedelta(minutes=15),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
 
             return ScheduledTaskResult(
@@ -284,6 +294,7 @@ class AdHocSchedulerWorkflow:
             result = await workflow.execute_activity(
                 health_check_external_services,
                 start_to_close_timeout=workflow.timedelta(minutes=5),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             return result
 
@@ -297,6 +308,7 @@ class AdHocSchedulerWorkflow:
                 data_type.value,  # Convert enum to string for activity
                 retention_days,
                 start_to_close_timeout=workflow.timedelta(minutes=10),
+                task_queue=DEFAULT_QUEUE,  # Route to default worker
             )
             return result
 
